@@ -25,15 +25,33 @@ export async function POST(req: Request) {
   });
   if (!ok) return NextResponse.json({ error: "Bad signature" }, { status: 400 });
 
-  const updated = await prisma.order.update({
-    where: { orderNumber: parsed.data.orderNumber },
-    data: {
-      paymentStatus: "PAID",
-      status: "CONFIRMED",
-      razorpayPaymentId: parsed.data.razorpayPaymentId,
-      razorpaySignature: parsed.data.signature,
-    },
-    include: { items: true },
+  const updated = await prisma.$transaction(async (tx) => {
+    const order = await tx.order.findUnique({
+      where: { orderNumber: parsed.data.orderNumber },
+      include: { items: true },
+    });
+    if (!order) throw new Error("Order not found");
+
+    // Atomically decrement stock for variants (prevents oversell).
+    for (const it of order.items) {
+      if (!it.variantId) continue;
+      const res = await tx.productVariant.updateMany({
+        where: { id: it.variantId, stock: { gte: it.quantity } },
+        data: { stock: { decrement: it.quantity } },
+      });
+      if (res.count !== 1) throw new Error("Insufficient stock for one or more items");
+    }
+
+    return await tx.order.update({
+      where: { orderNumber: parsed.data.orderNumber },
+      data: {
+        paymentStatus: "PAID",
+        status: "CONFIRMED",
+        razorpayPaymentId: parsed.data.razorpayPaymentId,
+        razorpaySignature: parsed.data.signature,
+      },
+      include: { items: true },
+    });
   });
 
   // Transactional email: order confirmation + invoice summary.

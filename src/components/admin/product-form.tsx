@@ -14,17 +14,29 @@ import { productSchema, type ProductInput } from "@/lib/validations";
 import { slugify } from "@/lib/utils";
 
 type Cat = { id: string; name: string };
+type VariantRow = {
+  id?: string;
+  size?: string | null;
+  color?: string | null;
+  sku: string;
+  stock: number;
+  priceDiff: number;
+};
 
 export function ProductForm({
   product,
   categories,
-}: {
+  variants,
+}: Readonly<{
   product?: any;
   categories: Cat[];
-}) {
+  variants?: VariantRow[];
+}>) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [imageInput, setImageInput] = useState("");
+  const [variantRows, setVariantRows] = useState<VariantRow[]>(variants ?? []);
+  const [variantSaving, setVariantSaving] = useState(false);
 
   const form = useForm<ProductInput>({
     resolver: zodResolver(productSchema),
@@ -59,6 +71,16 @@ export function ProductForm({
 
   const images = form.watch("images");
 
+  const submitLabel = (() => {
+    if (pending) return "Saving…";
+    if (product) return "Save changes";
+    return "Create piece";
+  })();
+
+  function updateVariant(idx: number, patch: Partial<VariantRow>) {
+    setVariantRows((prev) => prev.map((x, i) => (i === idx ? { ...x, ...patch } : x)));
+  }
+
   function addImage() {
     if (!imageInput) return;
     form.setValue("images", [...(images ?? []), imageInput]);
@@ -89,11 +111,41 @@ export function ProductForm({
     if (!product) return;
     if (!confirm("Archive this piece? This cannot be undone.")) return;
     const res = await fetch(`/api/admin/products/${product.id}`, { method: "DELETE" });
-    if (!res.ok) toast.error("Could not delete");
-    else {
+    if (res.ok) {
       toast.success("Archived");
       router.push("/admin/products");
       router.refresh();
+      return;
+    }
+    toast.error("Could not delete");
+  }
+
+  function addVariantRow() {
+    if (!product?.slug) return;
+    setVariantRows((p) => [...p, { sku: `${product.slug}-NEW`, size: null, color: null, stock: 0, priceDiff: 0 }]);
+  }
+
+  function removeVariantRow(idx: number) {
+    setVariantRows((p) => p.filter((_, i) => i !== idx));
+  }
+
+  async function saveVariants() {
+    if (!product?.id) return;
+    setVariantSaving(true);
+    try {
+      const res = await fetch(`/api/admin/products/${product.id}/variants`, {
+        method: "PUT",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ variants: variantRows }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "Could not save variants");
+      toast.success("Variants saved");
+      router.refresh();
+    } catch (e: any) {
+      toast.error(e.message);
+    } finally {
+      setVariantSaving(false);
     }
   }
 
@@ -104,7 +156,8 @@ export function ProductForm({
           <Input
             {...form.register("name")}
             onBlur={(e) => {
-              if (!form.getValues("slug")) form.setValue("slug", slugify(e.target.value));
+              if (form.getValues("slug")) return;
+              form.setValue("slug", slugify(e.target.value));
             }}
             className="text-bone"
           />
@@ -195,9 +248,112 @@ export function ProductForm({
         <Field label="Meta description"><Input {...form.register("metaDescription")} className="text-bone" /></Field>
       </Section>
 
+      {product?.id && (
+        <Section title="Variants & stock">
+          <div className="sm:col-span-2">
+            <div className="overflow-x-auto border border-bone/10">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="text-left text-[10px] uppercase tracking-editorial text-bone/50">
+                    <th className="px-4 py-3">Size</th>
+                    <th className="px-4 py-3">Colour</th>
+                    <th className="px-4 py-3">SKU</th>
+                    <th className="px-4 py-3">Stock</th>
+                    <th className="px-4 py-3">Price diff</th>
+                    <th className="px-4 py-3"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {variantRows.map((v, idx) => (
+                    <tr key={v.id ?? v.sku ?? idx} className="border-t border-bone/10">
+                      <td className="px-4 py-2">
+                        <input
+                          value={v.size ?? ""}
+                          onChange={(e) => updateVariant(idx, { size: e.target.value || null })}
+                          className="h-10 w-20 border-b border-bone/30 bg-transparent text-bone focus:outline-none"
+                          placeholder="M"
+                        />
+                      </td>
+                      <td className="px-4 py-2">
+                        <input
+                          value={v.color ?? ""}
+                          onChange={(e) => updateVariant(idx, { color: e.target.value || null })}
+                          className="h-10 w-32 border-b border-bone/30 bg-transparent text-bone focus:outline-none"
+                          placeholder="Charcoal"
+                        />
+                      </td>
+                      <td className="px-4 py-2">
+                        <input
+                          value={v.sku}
+                          onChange={(e) => updateVariant(idx, { sku: e.target.value })}
+                          className="h-10 w-56 border-b border-bone/30 bg-transparent text-bone focus:outline-none"
+                          placeholder="milano-cashmere-polo-M"
+                        />
+                      </td>
+                      <td className="px-4 py-2">
+                        <input
+                          type="number"
+                          min={0}
+                          value={v.stock}
+                          onChange={(e) => updateVariant(idx, { stock: Number(e.target.value) })}
+                          className="h-10 w-24 border-b border-bone/30 bg-transparent text-bone focus:outline-none"
+                        />
+                      </td>
+                      <td className="px-4 py-2">
+                        <input
+                          type="number"
+                          value={v.priceDiff}
+                          onChange={(e) => updateVariant(idx, { priceDiff: Number(e.target.value) })}
+                          className="h-10 w-28 border-b border-bone/30 bg-transparent text-bone focus:outline-none"
+                        />
+                      </td>
+                      <td className="px-4 py-2 text-right">
+                        <button
+                          type="button"
+                          onClick={() => removeVariantRow(idx)}
+                          className="text-[11px] uppercase tracking-editorial text-bone/60 hover:text-bone"
+                        >
+                          Remove
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {variantRows.length === 0 && (
+                    <tr>
+                      <td colSpan={6} className="px-4 py-6 text-bone/50">
+                        No variants yet. Add sizes/colours for stock control.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                className="border-bone/40 text-bone hover:bg-bone hover:text-charcoal"
+                onClick={addVariantRow}
+              >
+                Add variant
+              </Button>
+              <Button
+                type="button"
+                className="bg-bone text-charcoal hover:bg-sand"
+                onClick={saveVariants}
+                disabled={variantSaving}
+              >
+                {variantSaving ? "Saving variants…" : "Save variants"}
+              </Button>
+            </div>
+          </div>
+        </Section>
+      )}
+
       <div className="flex items-center justify-between gap-4">
         <Button type="submit" disabled={pending} className="bg-bone text-charcoal hover:bg-sand">
-          {pending ? "Saving…" : product ? "Save changes" : "Create piece"}
+          {submitLabel}
         </Button>
         {product && (
           <Button type="button" variant="ghost" onClick={onDelete} className="text-bone/60 hover:text-bone">
@@ -209,7 +365,7 @@ export function ProductForm({
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children }: Readonly<{ title: string; children: React.ReactNode }>) {
   return (
     <fieldset className="border border-bone/10 p-6">
       <legend className="px-2 text-[10px] uppercase tracking-editorial text-bone/50">{title}</legend>
@@ -223,12 +379,12 @@ function Field({
   error,
   className,
   children,
-}: {
+}: Readonly<{
   label: string;
   error?: string;
   className?: string;
   children: React.ReactNode;
-}) {
+}>) {
   return (
     <div className={className}>
       {label && <Label className="mb-1 block text-bone/60">{label}</Label>}
