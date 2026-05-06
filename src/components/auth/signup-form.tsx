@@ -2,7 +2,6 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { signIn } from "next-auth/react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -30,9 +29,8 @@ export function SignupForm() {
       });
       const data = await res.json();
       if (!res.ok) throw new Error(typeof data.error === "string" ? data.error : "Could not create account");
-      await signIn("credentials", { email: values.email, password: values.password, redirect: false });
-      toast.success("Welcome to Valerio Street");
-      router.push("/account");
+      toast.success("Check your email for a verification code");
+      router.push(`/auth/verify?email=${encodeURIComponent(values.email)}`);
       router.refresh();
     } catch (e: any) {
       toast.error(e.message);

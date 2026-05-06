@@ -10,6 +10,7 @@ const schema = z.object({
   banner: z.string().optional(),
   order: z.number().int().optional(),
   isActive: z.boolean().optional(),
+  sizeScale: z.enum(["ALPHA", "SHOE_EU"]).optional(),
 });
 
 export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {

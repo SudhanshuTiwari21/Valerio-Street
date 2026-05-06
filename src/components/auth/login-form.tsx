@@ -25,6 +25,11 @@ export function LoginForm() {
     const res = await signIn("credentials", { ...values, redirect: false });
     setLoading(false);
     if (res?.error) {
+      if (res.error === "EMAIL_NOT_VERIFIED") {
+        toast.error("Please verify your email to sign in");
+        router.push(`/auth/verify?email=${encodeURIComponent(values.email)}`);
+        return;
+      }
       toast.error("Invalid credentials");
       return;
     }

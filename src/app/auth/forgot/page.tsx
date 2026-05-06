@@ -3,17 +3,19 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 export default function ForgotPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [sent, setSent] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  async function submit(e: React.FormEvent) {
+  async function submit(e: React.SyntheticEvent) {
     e.preventDefault();
     setLoading(true);
     try {
@@ -23,6 +25,7 @@ export default function ForgotPage() {
         body: JSON.stringify({ email }),
       });
       setSent(true);
+      router.push(`/auth/reset?email=${encodeURIComponent(email)}`);
     } catch {
       toast.error("Something went wrong");
     } finally {
@@ -38,7 +41,7 @@ export default function ForgotPage() {
       </h1>
       {sent ? (
         <p className="mt-6 text-charcoal/70">
-          If an account exists for that email, a reset link is on its way.
+          If an account exists for that email, a reset code is on its way.
         </p>
       ) : (
         <form onSubmit={submit} className="mt-10 space-y-5">
@@ -47,7 +50,7 @@ export default function ForgotPage() {
             <Input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} />
           </div>
           <Button size="lg" className="w-full" disabled={loading}>
-            {loading ? "Sending…" : "Send reset link"}
+            {loading ? "Sending…" : "Send reset code"}
           </Button>
         </form>
       )}

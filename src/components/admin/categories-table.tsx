@@ -14,20 +14,21 @@ type Cat = {
   order: number;
   isActive: boolean;
   banner: string | null;
+  sizeScale: "ALPHA" | "SHOE_EU";
   productCount: number;
 };
 
-export function CategoriesTable({ categories: init }: { categories: Cat[] }) {
+export function CategoriesTable({ categories: init }: Readonly<{ categories: Cat[] }>) {
   const [categories, setCategories] = useState(init);
   const [name, setName] = useState("");
   const [, start] = useTransition();
 
   async function add() {
-    if (!name.trim()) return;
+    if (name.trim().length === 0) return;
     const res = await fetch("/api/admin/categories", {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ name, slug: slugify(name) }),
+      body: JSON.stringify({ name, slug: slugify(name), sizeScale: "ALPHA" }),
     });
     if (!res.ok) return toast.error("Could not create");
     const c = await res.json();
@@ -43,8 +44,8 @@ export function CategoriesTable({ categories: init }: { categories: Cat[] }) {
         headers: { "content-type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (!res.ok) toast.error("Could not save");
-      else toast.success("Saved");
+      if (res.ok) toast.success("Saved");
+      else toast.error("Could not save");
     });
   }
 
@@ -64,6 +65,7 @@ export function CategoriesTable({ categories: init }: { categories: Cat[] }) {
             <tr className="text-left text-[10px] uppercase tracking-editorial text-bone/50">
               <th className="px-6 py-3">Name</th>
               <th className="px-6 py-3">Slug</th>
+              <th className="px-6 py-3">Size scale</th>
               <th className="px-6 py-3">Pieces</th>
               <th className="px-6 py-3">Active</th>
             </tr>
@@ -79,6 +81,16 @@ export function CategoriesTable({ categories: init }: { categories: Cat[] }) {
                   />
                 </td>
                 <td className="px-6 py-3 text-bone/60">{c.slug}</td>
+                <td className="px-6 py-3">
+                  <select
+                    defaultValue={c.sizeScale}
+                    onChange={(e) => patch(c.id, { sizeScale: e.target.value as any })}
+                    className="h-10 border-b border-bone/30 bg-transparent text-[11px] uppercase tracking-editorial text-bone focus:outline-none"
+                  >
+                    <option value="ALPHA" className="bg-charcoal">Clothing (S/M/L)</option>
+                    <option value="SHOE_EU" className="bg-charcoal">Shoes (EU)</option>
+                  </select>
+                </td>
                 <td className="px-6 py-3 text-bone/70">{c.productCount}</td>
                 <td className="px-6 py-3">
                   <input

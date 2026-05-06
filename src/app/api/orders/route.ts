@@ -21,6 +21,7 @@ const lineItem = z.object({
 });
 
 const schema = checkoutSchema.extend({ items: z.array(lineItem).min(1) });
+const schemaWithCart = schema.extend({ cartId: z.string().min(8).optional() });
 
 export async function POST(req: Request) {
   const ip = ipFromHeaders(req.headers);
@@ -28,11 +29,11 @@ export async function POST(req: Request) {
   if (!rl.ok) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
 
   const json = await req.json().catch(() => null);
-  const parsed = schema.safeParse(json);
+  const parsed = schemaWithCart.safeParse(json);
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid order", details: parsed.error.flatten() }, { status: 400 });
   }
-  const { items, address, email, phone, couponCode, notes } = parsed.data;
+  const { items, address, email, phone, couponCode, notes, cartId } = parsed.data;
   const session = await auth();
 
   // Re-price server-side from DB to prevent tampering.
@@ -48,7 +49,7 @@ export async function POST(req: Request) {
   let discount = 0;
   if (couponCode) {
     const c = await prisma.coupon.findUnique({ where: { code: couponCode.toUpperCase() } });
-    if (c && c.isActive && (!c.expiresAt || c.expiresAt > new Date()) && subtotal >= c.minSubtotal) {
+    if (c?.isActive && (!c.expiresAt || c.expiresAt > new Date()) && subtotal >= c.minSubtotal) {
       discount = c.type === "PERCENT" ? Math.floor((subtotal * c.value) / 100) : Math.min(c.value * 100, subtotal);
     }
   }
@@ -102,6 +103,18 @@ export async function POST(req: Request) {
       },
     },
   });
+
+  // Consume reservations for this cart (stock already deducted at reserve time).
+  if (cartId?.length) {
+    await prisma.inventoryReservation.updateMany({
+      where: {
+        cartId,
+        status: "ACTIVE",
+        expiresAt: { gt: new Date() },
+      },
+      data: { status: "CONSUMED", orderId: order.id },
+    });
+  }
 
   return NextResponse.json({
     orderId: order.id,

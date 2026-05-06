@@ -22,14 +22,14 @@ export function Hero() {
           fill
           priority
           sizes="100vw"
-          className="animate-ken-burns object-cover"
+          className="animate-ken-burns object-cover object-right sm:object-center"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-charcoal/30 via-charcoal/20 to-charcoal/70" />
       </motion.div>
 
       <motion.div
         style={{ opacity }}
-        className="container relative z-10 flex h-full flex-col justify-end pb-20 text-bone sm:pb-28"
+        className="container relative z-10 flex h-full flex-col justify-end pb-28 text-bone sm:pb-28"
       >
         <motion.p
           initial={{ opacity: 0, y: 12 }}
@@ -78,7 +78,7 @@ export function Hero() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 1.5, delay: 1.5 }}
-        className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 text-bone/70"
+        className="absolute bottom-8 left-1/2 z-10 hidden -translate-x-1/2 text-bone/70 sm:block"
       >
         <div className="flex flex-col items-center gap-3 text-[10px] uppercase tracking-editorial">
           <span>Scroll</span>

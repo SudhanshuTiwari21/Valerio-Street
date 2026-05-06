@@ -3,6 +3,11 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 
+function newId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+  return `cart_${Math.random().toString(16).slice(2)}_${Date.now()}`;
+}
+
 export type CartItem = {
   productId: string;
   variantId?: string;
@@ -16,6 +21,7 @@ export type CartItem = {
 };
 
 type CartState = {
+  cartId: string;
   items: CartItem[];
   open: boolean;
   setOpen: (open: boolean) => void;
@@ -33,6 +39,7 @@ const sameLine = (a: CartItem, productId: string, variantId?: string) =>
 export const useCart = create<CartState>()(
   persist(
     (set, get) => ({
+      cartId: newId(),
       items: [],
       open: false,
       setOpen: (open) => set({ open }),
@@ -60,8 +67,8 @@ export const useCart = create<CartState>()(
     }),
     {
       name: "valerio-cart",
-      storage: createJSONStorage(() => (typeof window === "undefined" ? ({} as any) : localStorage)),
-      partialize: (s) => ({ items: s.items }),
+      storage: createJSONStorage(() => (globalThis.window === undefined ? ({} as any) : globalThis.window.localStorage)),
+      partialize: (s) => ({ items: s.items, cartId: s.cartId }),
     },
   ),
 );

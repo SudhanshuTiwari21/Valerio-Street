@@ -9,6 +9,7 @@ const schema = z.object({
   description: z.string().optional(),
   banner: z.string().optional(),
   order: z.number().int().optional(),
+  sizeScale: z.enum(["ALPHA", "SHOE_EU"]).optional(),
 });
 
 export async function POST(req: Request) {

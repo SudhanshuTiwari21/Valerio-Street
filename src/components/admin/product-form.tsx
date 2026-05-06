@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { productSchema, type ProductInput } from "@/lib/validations";
 import { slugify } from "@/lib/utils";
 
-type Cat = { id: string; name: string };
+type Cat = { id: string; name: string; sizeScale: "ALPHA" | "SHOE_EU" };
 type VariantRow = {
   id?: string;
   size?: string | null;
@@ -70,6 +70,9 @@ export function ProductForm({
   });
 
   const images = form.watch("images");
+  const categoryId = form.watch("categoryId");
+  const sizeScale = categories.find((c) => c.id === categoryId)?.sizeScale ?? "ALPHA";
+  const sizeOptions = sizeScale === "SHOE_EU" ? ["39", "40", "41", "42", "43", "44", "45"] : ["XS", "S", "M", "L", "XL", "XXL"];
 
   const submitLabel = (() => {
     if (pending) return "Saving…";
@@ -109,10 +112,16 @@ export function ProductForm({
 
   async function onDelete() {
     if (!product) return;
-    if (!confirm("Archive this piece? This cannot be undone.")) return;
-    const res = await fetch(`/api/admin/products/${product.id}`, { method: "DELETE" });
+    const isArchived = product.status === "ARCHIVED";
+    const prompt = isArchived ? "Unarchive this piece?" : "Archive this piece?";
+    if (!confirm(prompt)) return;
+    const res = await fetch(`/api/admin/products/${product.id}`, {
+      method: "PATCH",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ status: isArchived ? "ACTIVE" : "ARCHIVED" }),
+    });
     if (res.ok) {
-      toast.success("Archived");
+      toast.success(isArchived ? "Unarchived" : "Archived");
       router.push("/admin/products");
       router.refresh();
       return;
@@ -120,9 +129,31 @@ export function ProductForm({
     toast.error("Could not delete");
   }
 
+  async function hardDelete() {
+    if (!product) return;
+    if (!confirm("Permanently delete this product? This cannot be undone.")) return;
+    try {
+      const res = await fetch(`/api/admin/products/${product.id}`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ action: "HARD_DELETE" }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error ?? "Could not delete");
+      toast.success("Deleted permanently");
+      router.push("/admin/products");
+      router.refresh();
+    } catch (e: any) {
+      toast.error(e.message);
+    }
+  }
+
   function addVariantRow() {
     if (!product?.slug) return;
-    setVariantRows((p) => [...p, { sku: `${product.slug}-NEW`, size: null, color: null, stock: 0, priceDiff: 0 }]);
+    setVariantRows((p) => [
+      ...p,
+      { sku: `${product.slug}-NEW`, size: sizeOptions[0] ?? null, color: null, stock: 0, priceDiff: 0 },
+    ]);
   }
 
   function removeVariantRow(idx: number) {
@@ -267,12 +298,16 @@ export function ProductForm({
                   {variantRows.map((v, idx) => (
                     <tr key={v.id ?? v.sku ?? idx} className="border-t border-bone/10">
                       <td className="px-4 py-2">
-                        <input
+                        <select
                           value={v.size ?? ""}
                           onChange={(e) => updateVariant(idx, { size: e.target.value || null })}
-                          className="h-10 w-20 border-b border-bone/30 bg-transparent text-bone focus:outline-none"
-                          placeholder="M"
-                        />
+                          className="h-10 w-24 border-b border-bone/30 bg-transparent text-[11px] uppercase tracking-editorial text-bone focus:outline-none"
+                        >
+                          <option value="" className="bg-charcoal">—</option>
+                          {sizeOptions.map((s) => (
+                            <option key={s} value={s} className="bg-charcoal">{s}</option>
+                          ))}
+                        </select>
                       </td>
                       <td className="px-4 py-2">
                         <input
@@ -356,9 +391,14 @@ export function ProductForm({
           {submitLabel}
         </Button>
         {product && (
-          <Button type="button" variant="ghost" onClick={onDelete} className="text-bone/60 hover:text-bone">
-            Archive
-          </Button>
+          <div className="flex items-center gap-4">
+            <Button type="button" variant="ghost" onClick={onDelete} className="text-bone/60 hover:text-bone">
+              {product.status === "ARCHIVED" ? "Unarchive" : "Archive"}
+            </Button>
+            <Button type="button" variant="ghost" onClick={hardDelete} className="text-red-300/80 hover:text-red-200">
+              Delete permanently
+            </Button>
+          </div>
         )}
       </div>
     </form>

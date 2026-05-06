@@ -1,8 +1,10 @@
 import { NextResponse } from "next/server";
-import crypto from "crypto";
 import { prisma } from "@/lib/prisma";
 import { forgotSchema } from "@/lib/validations";
 import { ipFromHeaders, rateLimit } from "@/lib/rate-limit";
+import { generateOtpCode, hashOtp } from "@/lib/otp";
+import { sendMail } from "@/lib/mailer";
+import { otpEmail } from "@/lib/email-templates";
 
 export async function POST(req: Request) {
   const ip = ipFromHeaders(req.headers);
@@ -15,15 +17,22 @@ export async function POST(req: Request) {
 
   const user = await prisma.user.findUnique({ where: { email: parsed.data.email.toLowerCase() } });
   if (user) {
-    const token = crypto.randomBytes(24).toString("hex");
-    await prisma.passwordResetToken.create({
+    const code = generateOtpCode();
+    const codeHash = hashOtp({ email: user.email, type: "PASSWORD_RESET", code });
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+    await prisma.emailOtp.create({
       data: {
         email: user.email,
-        token,
-        expires: new Date(Date.now() + 1000 * 60 * 60),
+        type: "PASSWORD_RESET",
+        codeHash,
+        expiresAt,
+        sendCount: 1,
+        lastSentAt: new Date(),
       },
     });
-    // TODO: send email via Resend in production. Always respond OK.
+
+    const tpl = otpEmail({ type: "PASSWORD_RESET", code });
+    await sendMail({ to: user.email, subject: tpl.subject, html: tpl.html });
   }
   return NextResponse.json({ ok: true });
 }

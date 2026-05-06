@@ -40,11 +40,11 @@ type Props = {
   };
 };
 
-export function ProductPanel({ product }: Props) {
-  const sizes = useMemo(
-    () => Array.from(new Set(product.variants.map((v) => v.size).filter(Boolean) as string[])),
-    [product.variants],
-  );
+export function ProductPanel({ product }: Readonly<Props>) {
+  const sizes = useMemo(() => {
+    const list = product.variants.map((v) => v.size).filter((x): x is string => typeof x === "string" && x.length > 0);
+    return Array.from(new Set(list));
+  }, [product.variants]);
   const [size, setSize] = useState<string | undefined>(sizes[0]);
   const [qty, setQty] = useState(1);
   const cart = useCart();
@@ -77,7 +77,7 @@ export function ProductPanel({ product }: Props) {
         toast.error("Please sign in to save to your wishlist");
         return;
       }
-      if (!res.ok) throw new Error();
+      if (!res.ok) throw new Error("Wishlist failed");
       toast.success("Saved to wishlist");
     } catch {
       toast.error("Could not save");
@@ -93,7 +93,7 @@ export function ProductPanel({ product }: Props) {
 
       <div className="mt-5 flex items-baseline gap-4">
         <p className="font-serif text-2xl text-charcoal">{product.priceLabel}</p>
-        {product.compareAtPrice && product.compareAtPrice > product.price && (
+        {!!product.compareAtPrice && product.compareAtPrice > product.price && (
           <p className="text-sm text-charcoal/40 line-through">{formatINR(product.compareAtPrice)}</p>
         )}
       </div>
@@ -116,6 +116,7 @@ export function ProductPanel({ product }: Props) {
               const v = product.variants.find((x) => x.size === s);
               const active = size === s;
               const out = v ? v.stock <= 0 : false;
+              const low = v ? v.stock > 0 && v.stock <= 5 : false;
               return (
                 <button
                   key={s}
@@ -128,6 +129,15 @@ export function ProductPanel({ product }: Props) {
                   } ${out ? "opacity-30" : ""}`}
                 >
                   {s}
+                  {low && (
+                    <span
+                      className={`absolute -top-2 -right-2 rounded-full px-2 py-0.5 text-[9px] uppercase tracking-editorial ${
+                        active ? "bg-bone text-charcoal" : "bg-charcoal text-bone"
+                      }`}
+                    >
+                      Only {v?.stock} left
+                    </span>
+                  )}
                 </button>
               );
             })}

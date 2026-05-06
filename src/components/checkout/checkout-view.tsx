@@ -27,8 +27,40 @@ export function CheckoutView() {
   const router = useRouter();
   const [hydrated, setHydrated] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [reservedUntil, setReservedUntil] = useState<string | null>(null);
 
   useEffect(() => setHydrated(true), []);
+  useEffect(() => {
+    if (!hydrated) return;
+    if (cart.items.length === 0) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const reserveItems = cart.items
+          .filter((i) => i.variantId)
+          .map((i) => ({ variantId: i.variantId as string, quantity: i.quantity }));
+        if (reserveItems.length === 0) return;
+
+        const res = await fetch("/api/inventory/reserve", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({
+            cartId: cart.cartId,
+            items: reserveItems,
+          }),
+        });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.error ?? "Could not reserve inventory");
+        const until = data?.reservations?.[0]?.expiresAt as string | undefined;
+        if (!cancelled) setReservedUntil(until ?? null);
+      } catch (e: any) {
+        toast.error(e.message);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [hydrated, cart.cartId, cart.items]);
 
   const form = useForm<CheckoutInput>({
     resolver: zodResolver(checkoutSchema),
@@ -64,6 +96,7 @@ export function CheckoutView() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
           ...values,
+          cartId: cart.cartId,
           items: cart.items,
         }),
       });
@@ -92,7 +125,7 @@ export function CheckoutView() {
                 orderNumber: data.orderNumber,
               }),
             });
-            if (!verify.ok) throw new Error();
+            if (!verify.ok) throw new Error("Verification failed");
             cart.clear();
             toast.success("Order confirmed");
             router.push(`/checkout/success?order=${data.orderNumber}`);
@@ -107,7 +140,7 @@ export function CheckoutView() {
           },
         },
       };
-      const rz = new window.Razorpay(opts);
+      const rz = new globalThis.window.Razorpay(opts);
       rz.open();
     } catch (e: any) {
       toast.error(e.message);
@@ -197,6 +230,11 @@ export function CheckoutView() {
             <Button type="submit" size="lg" disabled={submitting} className="mt-8 w-full">
               {submitting ? "Opening secure payment…" : `Pay ${formatINR(total)}`}
             </Button>
+            {reservedUntil && (
+              <p className="mt-3 text-center text-[10px] uppercase tracking-editorial text-charcoal/40">
+                Inventory held for 10 minutes
+              </p>
+            )}
             <p className="mt-4 text-center text-[10px] uppercase tracking-editorial text-charcoal/50">
               Encrypted payments by Razorpay
             </p>
@@ -207,7 +245,7 @@ export function CheckoutView() {
   );
 }
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children }: Readonly<{ title: string; children: React.ReactNode }>) {
   return (
     <div>
       <h2 className="font-serif text-2xl font-light text-charcoal">{title}</h2>
@@ -221,12 +259,12 @@ function Field({
   error,
   className,
   children,
-}: {
+}: Readonly<{
   label: string;
   error?: string;
   className?: string;
   children: React.ReactNode;
-}) {
+}>) {
   return (
     <div className={className}>
       <Label className="mb-1 block">{label}</Label>
@@ -236,7 +274,7 @@ function Field({
   );
 }
 
-function Row({ label, value }: { label: string; value: string }) {
+function Row({ label, value }: Readonly<{ label: string; value: string }>) {
   return (
     <div className="flex justify-between">
       <span className="text-charcoal/60">{label}</span>

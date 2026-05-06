@@ -71,6 +71,31 @@ export function orderStatusUpdatedEmail(input: {
   return { subject, html };
 }
 
+export function otpEmail(input: { type: "SIGNUP" | "PASSWORD_RESET"; code: string }) {
+  const title = input.type === "SIGNUP" ? "Verify your email." : "Reset your password.";
+  const subtitle =
+    input.type === "SIGNUP"
+      ? "Enter this code to confirm your account."
+      : "Enter this code to set a new password.";
+  const subject = input.type === "SIGNUP" ? "Your verification code" : "Your reset code";
+  const html = baseEmail({
+    title,
+    subtitle,
+    body: `
+      <div style="margin-top:18px;padding:18px 18px;border:1px solid rgba(26,26,26,0.12);background:#F5F1EA">
+        <div style="font-size:12px;text-transform:uppercase;letter-spacing:0.18em;color:rgba(26,26,26,0.55)">One-time code</div>
+        <div style="margin-top:10px;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:28px;letter-spacing:0.22em;color:#1A1A1A">
+          ${escapeHtml(input.code)}
+        </div>
+        <div style="margin-top:10px;font-size:12px;color:rgba(26,26,26,0.65)">
+          This code expires in 10 minutes.
+        </div>
+      </div>
+    `,
+  });
+  return { subject, html };
+}
+
 function baseEmail(input: { title: string; subtitle: string; body: string }) {
   return `
   <div style="background:#F5F1EA;padding:40px 16px;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;color:#1A1A1A">

@@ -84,7 +84,7 @@ export function Header() {
             markEm={3.5}
             markNudgeEm={0.32}
             markInnerScale={2.35}
-            textClassName="text-2xl sm:text-3xl"
+            textClassName="whitespace-nowrap text-[18px] tracking-[0.22em] sm:text-3xl sm:tracking-[0.30em]"
           />
         </div>
 

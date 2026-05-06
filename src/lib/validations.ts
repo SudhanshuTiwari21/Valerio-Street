@@ -16,8 +16,15 @@ export const forgotSchema = z.object({
 });
 
 export const resetSchema = z.object({
-  token: z.string().min(8),
+  email: z.string().email(),
+  code: z.string().regex(/^\d{6}$/, "Enter the 6-digit code"),
   password: z.string().min(8),
+});
+
+export const otpVerifySchema = z.object({
+  email: z.string().email(),
+  type: z.enum(["SIGNUP", "PASSWORD_RESET"]),
+  code: z.string().regex(/^\d{6}$/),
 });
 
 export const addressSchema = z.object({
