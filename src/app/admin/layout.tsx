@@ -14,7 +14,7 @@ export default async function AdminLayout({ children }: Readonly<{ children: Rea
   if (!isStaff(session.user.role)) redirect("/");
 
   return (
-    <div className="grid min-h-svh bg-charcoal text-bone lg:grid-cols-[260px_1fr]">
+    <div className="dark grid min-h-svh bg-charcoal text-bone lg:grid-cols-[260px_1fr]">
       <AdminSidebar
         user={{
           name: session.user.name ?? null,
