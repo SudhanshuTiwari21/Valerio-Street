@@ -10,6 +10,20 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
     const body = await req.json().catch(() => null);
     const parsed = productSchema.partial().safeParse(body);
     if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+    const wantsActiveOrFeatured = parsed.data.status === "ACTIVE" || parsed.data.isFeatured === true;
+    if (wantsActiveOrFeatured) {
+      const inv = await prisma.productVariant.aggregate({
+        where: { productId: id },
+        _sum: { stock: true },
+      });
+      const totalStock = inv._sum.stock ?? 0;
+      if (totalStock < 1) {
+        return NextResponse.json(
+          { error: "Add at least one variant with stock ≥ 1 before setting Active or Featured." },
+          { status: 409 },
+        );
+      }
+    }
     const updated = await prisma.product.update({ where: { id }, data: parsed.data });
     await prisma.adminActivityLog.create({
       data: { userId: session.user.id, action: "PRODUCT_UPDATE", entity: "Product", entityId: id },

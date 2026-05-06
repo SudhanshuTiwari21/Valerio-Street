@@ -24,7 +24,7 @@ export async function PUT(req: Request, ctx: { params: Promise<{ id: string }> }
     if (!parsed.success) return NextResponse.json({ error: "Invalid variants" }, { status: 400 });
 
     const incoming = parsed.data.variants;
-    const keepIds = incoming.flatMap((v) => (v.id ? [v.id] : []));
+    const keepIds: string[] = [];
 
     await prisma.$transaction(async (tx) => {
       // Ensure product exists
@@ -43,8 +43,9 @@ export async function PUT(req: Request, ctx: { params: Promise<{ id: string }> }
               priceDiff: v.priceDiff,
             },
           });
+          keepIds.push(v.id);
         } else {
-          await tx.productVariant.create({
+          const created = await tx.productVariant.create({
             data: {
               productId,
               size: v.size ?? null,
@@ -53,14 +54,18 @@ export async function PUT(req: Request, ctx: { params: Promise<{ id: string }> }
               stock: v.stock,
               priceDiff: v.priceDiff,
             },
+            select: { id: true },
           });
+          keepIds.push(created.id);
         }
       }
 
       // Remove variants not present anymore (for this product only).
-      await tx.productVariant.deleteMany({
-        where: { productId, ...(keepIds.length ? { id: { notIn: keepIds } } : {}) },
-      });
+      if (keepIds.length) {
+        await tx.productVariant.deleteMany({
+          where: { productId, id: { notIn: keepIds } },
+        });
+      }
 
       await tx.adminActivityLog.create({
         data: {

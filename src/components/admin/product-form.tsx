@@ -98,6 +98,7 @@ export function ProductForm({
   const categoryId = form.watch("categoryId");
   const sizeScale = categories.find((c) => c.id === categoryId)?.sizeScale ?? "ALPHA";
   const sizeOptions = sizeScale === "SHOE_EU" ? ["39", "40", "41", "42", "43", "44", "45"] : ["XS", "S", "M", "L", "XL", "XXL"];
+  const inventoryOk = variantRows.some((v) => (v.stock ?? 0) > 0);
 
   const submitLabel = (() => {
     if (pending) return "Saving…";
@@ -117,6 +118,11 @@ export function ProductForm({
 
   function onSubmit(values: ProductInput) {
     start(async () => {
+      // Strict admin guardrails: no Active/Featured without inventory
+      if ((values.status === "ACTIVE" || values.isFeatured) && !inventoryOk) {
+        toast.error("Add at least one variant with stock ≥ 1 before setting Active or Featured.");
+        return;
+      }
       const url = product ? `/api/admin/products/${product.id}` : "/api/admin/products";
       const method = product ? "PATCH" : "POST";
       const res = await fetch(url, {

@@ -9,6 +9,12 @@ export async function POST(req: Request) {
     const body = await req.json().catch(() => null);
     const parsed = productSchema.safeParse(body);
     if (!parsed.success) return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+    if (parsed.data.status === "ACTIVE" || parsed.data.isFeatured) {
+      return NextResponse.json(
+        { error: "Product must have inventory before it can be Active or Featured." },
+        { status: 409 },
+      );
+    }
     const created = await prisma.product.create({ data: parsed.data });
     await prisma.adminActivityLog.create({
       data: { userId: session.user.id, action: "PRODUCT_CREATE", entity: "Product", entityId: created.id },
