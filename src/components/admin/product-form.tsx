@@ -23,6 +23,17 @@ type VariantRow = {
   priceDiff: number;
 };
 
+function uniqueSku(base: string, existing: Set<string>) {
+  let sku = base;
+  if (!existing.has(sku)) return sku;
+  for (let i = 0; i < 50; i++) {
+    const suffix = Math.random().toString(16).slice(2, 6).toUpperCase();
+    sku = `${base}-${suffix}`;
+    if (!existing.has(sku)) return sku;
+  }
+  return `${base}-${Date.now()}`;
+}
+
 export function ProductForm({
   product,
   categories,
@@ -150,9 +161,13 @@ export function ProductForm({
 
   function addVariantRow() {
     if (!product?.slug) return;
+    const existing = new Set(variantRows.map((v) => v.sku.trim()).filter(Boolean));
+    const size = sizeOptions[0] ?? null;
+    const base = `${product.slug}-${size ?? "VAR"}`.toLowerCase();
+    const sku = uniqueSku(base, existing);
     setVariantRows((p) => [
       ...p,
-      { sku: `${product.slug}-NEW`, size: sizeOptions[0] ?? null, color: null, stock: 0, priceDiff: 0 },
+      { sku, size, color: null, stock: 0, priceDiff: 0 },
     ]);
   }
 
@@ -164,6 +179,21 @@ export function ProductForm({
     if (!product?.id) return;
     setVariantSaving(true);
     try {
+      const duplicates = (() => {
+        const seen = new Set<string>();
+        const dups = new Set<string>();
+        for (const v of variantRows) {
+          const sku = v.sku.trim();
+          if (!sku) continue;
+          if (seen.has(sku)) dups.add(sku);
+          else seen.add(sku);
+        }
+        return Array.from(dups);
+      })();
+      if (duplicates.length) {
+        throw new Error(`Duplicate SKU(s): ${duplicates.slice(0, 3).join(", ")}`);
+      }
+
       const res = await fetch(`/api/admin/products/${product.id}/variants`, {
         method: "PUT",
         headers: { "content-type": "application/json" },

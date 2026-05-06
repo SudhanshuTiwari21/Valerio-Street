@@ -76,6 +76,9 @@ export async function PUT(req: Request, ctx: { params: Promise<{ id: string }> }
     return NextResponse.json({ ok: true });
   } catch (e: any) {
     if (e instanceof Response) return e;
+    if (e?.code === "P2002") {
+      return NextResponse.json({ error: "SKU must be unique. Please change the duplicate SKU." }, { status: 409 });
+    }
     const msg = typeof e?.message === "string" ? e.message : "Server error";
     return NextResponse.json({ error: msg }, { status: 500 });
   }
