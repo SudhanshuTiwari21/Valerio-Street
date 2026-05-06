@@ -77,7 +77,7 @@ export function Header() {
           ))}
         </nav>
 
-        <div className="absolute left-1/2 -translate-x-1/2">
+        <div className="absolute left-1/2 -translate-x-1/2 origin-center scale-[0.82] sm:scale-100">
           <Brand
             className="text-charcoal"
             size="lg"
