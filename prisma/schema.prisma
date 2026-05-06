@@ -1,0 +1,393 @@
+// Valerio Street - Prisma schema
+// Postgres (Neon / Supabase / any). Run: pnpm prisma migrate dev
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ─── Auth & Users ──────────────────────────────────────────────────────
+
+enum UserRole {
+  CUSTOMER
+  CONTENT_EDITOR
+  MANAGER
+  ADMIN
+  SUPER_ADMIN
+}
+
+enum AuthProvider {
+  CREDENTIALS
+  GOOGLE
+}
+
+model User {
+  id            String       @id @default(cuid())
+  email         String       @unique
+  name          String?
+  passwordHash  String?
+  image         String?
+  emailVerified DateTime?
+  role          UserRole     @default(CUSTOMER)
+  provider      AuthProvider @default(CREDENTIALS)
+  phone         String?
+  isActive      Boolean      @default(true)
+  newsletter    Boolean      @default(false)
+
+  permissions   Permission[] @relation("UserPermissions")
+
+  accounts      Account[]
+  sessions      Session[]
+  addresses     Address[]
+  orders        Order[]
+  wishlist      WishlistItem[]
+  reviews       Review[]
+  activityLogs  AdminActivityLog[]
+
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([role])
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expires   DateTime
+  createdAt DateTime @default(now())
+
+  @@index([email])
+}
+
+// ─── RBAC ──────────────────────────────────────────────────────────────
+
+enum PermissionKey {
+  MANAGE_PRODUCTS
+  MANAGE_ORDERS
+  MANAGE_CUSTOMERS
+  MANAGE_CATEGORIES
+  MANAGE_STAFF
+  MANAGE_CMS
+  MANAGE_SETTINGS
+  VIEW_ANALYTICS
+  MANAGE_BLOG
+}
+
+model Permission {
+  id    String        @id @default(cuid())
+  key   PermissionKey @unique
+  label String
+  users User[]        @relation("UserPermissions")
+}
+
+// ─── Catalog ───────────────────────────────────────────────────────────
+
+model Category {
+  id          String     @id @default(cuid())
+  name        String
+  slug        String     @unique
+  description String?    @db.Text
+  banner      String?
+  order       Int        @default(0)
+  isActive    Boolean    @default(true)
+
+  products    Product[]
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+enum ProductStatus {
+  DRAFT
+  ACTIVE
+  ARCHIVED
+}
+
+model Product {
+  id              String           @id @default(cuid())
+  name            String
+  slug            String           @unique
+  description     String           @db.Text
+  story           String?          @db.Text
+  materials       String?          @db.Text
+  stylingNotes    String?          @db.Text
+  price           Int              // stored in paise / minor units
+  compareAtPrice  Int?
+  status          ProductStatus    @default(ACTIVE)
+  isFeatured      Boolean          @default(false)
+  images          String[]         @default([])
+  metaTitle       String?
+  metaDescription String?          @db.Text
+
+  categoryId      String
+  category        Category         @relation(fields: [categoryId], references: [id])
+
+  variants        ProductVariant[]
+  orderItems      OrderItem[]
+  wishlistItems   WishlistItem[]
+  reviews         Review[]
+
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([categoryId])
+  @@index([status])
+}
+
+model ProductVariant {
+  id        String   @id @default(cuid())
+  productId String
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  size      String?
+  color     String?
+  sku       String   @unique
+  stock     Int      @default(0)
+  priceDiff Int      @default(0)
+
+  orderItems OrderItem[]
+
+  @@index([productId])
+}
+
+// ─── Cart / Wishlist ───────────────────────────────────────────────────
+
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+}
+
+// ─── Orders ────────────────────────────────────────────────────────────
+
+enum OrderStatus {
+  PENDING
+  CONFIRMED
+  PROCESSING
+  SHIPPED
+  DELIVERED
+  CANCELLED
+  REFUNDED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+model Order {
+  id                String        @id @default(cuid())
+  orderNumber       String        @unique
+  userId            String?
+  user              User?         @relation(fields: [userId], references: [id])
+  email             String
+  phone             String?
+
+  items             OrderItem[]
+
+  subtotal          Int
+  shippingFee       Int           @default(0)
+  taxAmount         Int           @default(0)
+  discountAmount    Int           @default(0)
+  total             Int
+  currency          String        @default("INR")
+
+  couponCode        String?
+
+  shippingAddressId String?
+  shippingAddress   Address?      @relation("ShippingAddress", fields: [shippingAddressId], references: [id])
+
+  status            OrderStatus   @default(PENDING)
+  paymentStatus     PaymentStatus @default(PENDING)
+
+  razorpayOrderId   String?
+  razorpayPaymentId String?
+  razorpaySignature String?
+
+  trackingNumber    String?
+  notes             String?       @db.Text
+
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  @@index([userId])
+  @@index([status])
+  @@index([paymentStatus])
+}
+
+model OrderItem {
+  id          String          @id @default(cuid())
+  orderId     String
+  productId   String
+  variantId   String?
+  name        String
+  size        String?
+  color       String?
+  image       String?
+  unitPrice   Int
+  quantity    Int
+
+  order       Order           @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product     Product         @relation(fields: [productId], references: [id])
+  variant     ProductVariant? @relation(fields: [variantId], references: [id])
+
+  @@index([orderId])
+}
+
+// ─── Address ───────────────────────────────────────────────────────────
+
+model Address {
+  id          String   @id @default(cuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  fullName    String
+  phone       String
+  line1       String
+  line2       String?
+  city        String
+  state       String
+  postalCode  String
+  country     String   @default("India")
+  isDefault   Boolean  @default(false)
+
+  shippingFor Order[]  @relation("ShippingAddress")
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ─── Reviews ───────────────────────────────────────────────────────────
+
+model Review {
+  id        String   @id @default(cuid())
+  productId String
+  userId    String
+  rating    Int
+  title     String?
+  body      String?  @db.Text
+  isApproved Boolean @default(false)
+
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([productId, userId])
+}
+
+// ─── Coupons ───────────────────────────────────────────────────────────
+
+enum DiscountType {
+  PERCENT
+  FIXED
+}
+
+model Coupon {
+  id           String       @id @default(cuid())
+  code         String       @unique
+  description  String?
+  type         DiscountType
+  value        Int
+  minSubtotal  Int          @default(0)
+  maxRedemptions Int?
+  redemptions  Int          @default(0)
+  startsAt     DateTime?
+  expiresAt    DateTime?
+  isActive     Boolean      @default(true)
+
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+}
+
+// ─── CMS / Settings / Logs ─────────────────────────────────────────────
+
+model CMSContent {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  title     String?
+  body      Json?
+  image     String?
+  updatedAt DateTime @updatedAt
+}
+
+model Settings {
+  id              String  @id @default("singleton")
+  brandName       String  @default("Valerio Street")
+  supportEmail    String  @default("support@valeriostreet.com")
+  supportPhone    String?
+  shippingFlatFee Int     @default(0)
+  freeShippingMin Int     @default(0)
+  taxRate         Int     @default(0)
+  razorpayEnabled Boolean @default(true)
+  metaTitle       String?
+  metaDescription String?
+  updatedAt       DateTime @updatedAt
+}
+
+model AdminActivityLog {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action    String
+  entity    String?
+  entityId  String?
+  metadata  Json?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([entity, entityId])
+}
+
+model NewsletterSubscriber {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
