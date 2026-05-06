@@ -181,7 +181,7 @@ export function ProductForm({
   }
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 text-charcoal">
+    <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8 text-bone">
       <Section title="Identity">
         <Field label="Name" error={form.formState.errors.name?.message}>
           <Input
@@ -190,50 +190,50 @@ export function ProductForm({
               if (form.getValues("slug")) return;
               form.setValue("slug", slugify(e.target.value));
             }}
-            className="text-charcoal"
+            className="text-bone"
           />
         </Field>
         <Field label="Slug" error={form.formState.errors.slug?.message}>
-          <Input {...form.register("slug")} className="text-charcoal" />
+          <Input {...form.register("slug")} className="text-bone" />
         </Field>
         <Field className="sm:col-span-2" label="Description" error={form.formState.errors.description?.message}>
-          <Textarea rows={4} {...form.register("description")} className="text-charcoal" />
+          <Textarea rows={4} {...form.register("description")} className="text-bone" />
         </Field>
         <Field className="sm:col-span-2" label="The story (optional)">
-          <Textarea rows={3} {...form.register("story")} className="text-charcoal" />
+          <Textarea rows={3} {...form.register("story")} className="text-bone" />
         </Field>
         <Field label="Materials">
-          <Textarea rows={3} {...form.register("materials")} className="text-charcoal" />
+          <Textarea rows={3} {...form.register("materials")} className="text-bone" />
         </Field>
         <Field label="Styling notes">
-          <Textarea rows={3} {...form.register("stylingNotes")} className="text-charcoal" />
+          <Textarea rows={3} {...form.register("stylingNotes")} className="text-bone" />
         </Field>
       </Section>
 
       <Section title="Pricing & status">
         <Field label="Price (paise)" error={form.formState.errors.price?.message}>
-          <Input type="number" min={0} {...form.register("price")} className="text-charcoal" />
+          <Input type="number" min={0} {...form.register("price")} className="text-bone" />
         </Field>
         <Field label="Compare-at price (paise)">
-          <Input type="number" min={0} {...form.register("compareAtPrice")} className="text-charcoal" />
+          <Input type="number" min={0} {...form.register("compareAtPrice")} className="text-bone" />
         </Field>
         <Field label="Category">
           <select
             {...form.register("categoryId")}
-            className="h-11 w-full border-b border-charcoal/20 bg-transparent text-sm text-charcoal focus:outline-none"
+            className="h-11 w-full border-b border-bone/30 bg-transparent text-sm text-bone focus:outline-none"
           >
             {categories.map((c) => (
-              <option key={c.id} value={c.id} className="bg-bone text-charcoal">{c.name}</option>
+              <option key={c.id} value={c.id} className="bg-charcoal">{c.name}</option>
             ))}
           </select>
         </Field>
         <Field label="Status">
           <select
             {...form.register("status")}
-            className="h-11 w-full border-b border-charcoal/20 bg-transparent text-sm text-charcoal focus:outline-none"
+            className="h-11 w-full border-b border-bone/30 bg-transparent text-sm text-bone focus:outline-none"
           >
             {["DRAFT", "ACTIVE", "ARCHIVED"].map((s) => (
-              <option key={s} value={s} className="bg-bone text-charcoal">{s}</option>
+              <option key={s} value={s} className="bg-charcoal">{s}</option>
             ))}
           </select>
         </Field>
@@ -251,20 +251,20 @@ export function ProductForm({
               value={imageInput}
               onChange={(e) => setImageInput(e.target.value)}
               placeholder="https://res.cloudinary.com/…"
-              className="text-charcoal"
+              className="text-bone"
             />
             <Button type="button" variant="outline" className="border-bone/40 text-bone hover:bg-bone hover:text-charcoal" onClick={addImage}>
               Add
             </Button>
           </div>
-          <ul className="mt-4 space-y-1 text-xs text-charcoal/60">
+          <ul className="mt-4 space-y-1 text-xs text-bone/60">
             {(images ?? []).map((u, i) => (
-              <li key={u + i} className="flex items-center justify-between gap-3 border-b border-charcoal/10 pb-2">
+              <li key={u + i} className="flex items-center justify-between gap-3 border-b border-bone/10 pb-2">
                 <span className="truncate">{u}</span>
                 <button
                   type="button"
                   onClick={() => form.setValue("images", images.filter((_, idx) => idx !== i))}
-                  className="text-charcoal/50 hover:text-charcoal"
+                  className="text-bone/50 hover:text-bone"
                 >
                   remove
                 </button>
@@ -275,17 +275,17 @@ export function ProductForm({
       </Section>
 
       <Section title="SEO">
-        <Field label="Meta title"><Input {...form.register("metaTitle")} className="text-charcoal" /></Field>
-        <Field label="Meta description"><Input {...form.register("metaDescription")} className="text-charcoal" /></Field>
+        <Field label="Meta title"><Input {...form.register("metaTitle")} className="text-bone" /></Field>
+        <Field label="Meta description"><Input {...form.register("metaDescription")} className="text-bone" /></Field>
       </Section>
 
       {product?.id && (
         <Section title="Variants & stock">
           <div className="sm:col-span-2">
-            <div className="overflow-x-auto border border-charcoal/10">
+            <div className="overflow-x-auto border border-bone/10">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="text-left text-[10px] uppercase tracking-editorial text-charcoal/60">
+                  <tr className="text-left text-[10px] uppercase tracking-editorial text-bone/50">
                     <th className="px-4 py-3">Size</th>
                     <th className="px-4 py-3">Colour</th>
                     <th className="px-4 py-3">SKU</th>
@@ -296,16 +296,16 @@ export function ProductForm({
                 </thead>
                 <tbody>
                   {variantRows.map((v, idx) => (
-                    <tr key={v.id ?? v.sku ?? idx} className="border-t border-charcoal/10">
+                    <tr key={v.id ?? v.sku ?? idx} className="border-t border-bone/10">
                       <td className="px-4 py-2">
                         <select
                           value={v.size ?? ""}
                           onChange={(e) => updateVariant(idx, { size: e.target.value || null })}
-                          className="h-10 w-24 border-b border-charcoal/20 bg-transparent text-[11px] uppercase tracking-editorial text-charcoal focus:outline-none"
+                          className="h-10 w-24 border-b border-bone/30 bg-transparent text-[11px] uppercase tracking-editorial text-bone focus:outline-none"
                         >
-                          <option value="" className="bg-bone text-charcoal">—</option>
+                          <option value="" className="bg-charcoal">—</option>
                           {sizeOptions.map((s) => (
-                            <option key={s} value={s} className="bg-bone text-charcoal">{s}</option>
+                            <option key={s} value={s} className="bg-charcoal">{s}</option>
                           ))}
                         </select>
                       </td>
@@ -313,7 +313,7 @@ export function ProductForm({
                         <input
                           value={v.color ?? ""}
                           onChange={(e) => updateVariant(idx, { color: e.target.value || null })}
-                          className="h-10 w-32 border-b border-charcoal/20 bg-transparent text-charcoal focus:outline-none"
+                          className="h-10 w-32 border-b border-bone/30 bg-transparent text-bone focus:outline-none"
                           placeholder="Charcoal"
                         />
                       </td>
@@ -321,7 +321,7 @@ export function ProductForm({
                         <input
                           value={v.sku}
                           onChange={(e) => updateVariant(idx, { sku: e.target.value })}
-                          className="h-10 w-56 border-b border-charcoal/20 bg-transparent text-charcoal focus:outline-none"
+                          className="h-10 w-56 border-b border-bone/30 bg-transparent text-bone focus:outline-none"
                           placeholder="milano-cashmere-polo-M"
                         />
                       </td>
@@ -331,7 +331,7 @@ export function ProductForm({
                           min={0}
                           value={v.stock}
                           onChange={(e) => updateVariant(idx, { stock: Number(e.target.value) })}
-                          className="h-10 w-24 border-b border-charcoal/20 bg-transparent text-charcoal focus:outline-none"
+                          className="h-10 w-24 border-b border-bone/30 bg-transparent text-bone focus:outline-none"
                         />
                       </td>
                       <td className="px-4 py-2">
@@ -339,14 +339,14 @@ export function ProductForm({
                           type="number"
                           value={v.priceDiff}
                           onChange={(e) => updateVariant(idx, { priceDiff: Number(e.target.value) })}
-                          className="h-10 w-28 border-b border-charcoal/20 bg-transparent text-charcoal focus:outline-none"
+                          className="h-10 w-28 border-b border-bone/30 bg-transparent text-bone focus:outline-none"
                         />
                       </td>
                       <td className="px-4 py-2 text-right">
                         <button
                           type="button"
                           onClick={() => removeVariantRow(idx)}
-                          className="text-[11px] uppercase tracking-editorial text-charcoal/60 hover:text-charcoal"
+                          className="text-[11px] uppercase tracking-editorial text-bone/60 hover:text-bone"
                         >
                           Remove
                         </button>
@@ -355,7 +355,7 @@ export function ProductForm({
                   ))}
                   {variantRows.length === 0 && (
                     <tr>
-                      <td colSpan={6} className="px-4 py-6 text-charcoal/60">
+                      <td colSpan={6} className="px-4 py-6 text-bone/50">
                         No variants yet. Add sizes/colours for stock control.
                       </td>
                     </tr>
@@ -368,7 +368,7 @@ export function ProductForm({
               <Button
                 type="button"
                 variant="outline"
-                className="border-charcoal/30 text-charcoal hover:bg-charcoal hover:text-bone"
+                className="border-bone/40 text-bone hover:bg-bone hover:text-charcoal"
                 onClick={addVariantRow}
               >
                 Add variant
@@ -392,7 +392,7 @@ export function ProductForm({
         </Button>
         {product && (
           <div className="flex items-center gap-4">
-            <Button type="button" variant="ghost" onClick={onDelete} className="text-charcoal/60 hover:text-charcoal">
+            <Button type="button" variant="ghost" onClick={onDelete} className="text-bone/60 hover:text-bone">
               {product.status === "ARCHIVED" ? "Unarchive" : "Archive"}
             </Button>
             <Button type="button" variant="ghost" onClick={hardDelete} className="text-red-300/80 hover:text-red-200">
@@ -407,8 +407,8 @@ export function ProductForm({
 
 function Section({ title, children }: Readonly<{ title: string; children: React.ReactNode }>) {
   return (
-    <fieldset className="border border-charcoal/10 p-6">
-      <legend className="px-2 text-[10px] uppercase tracking-editorial text-charcoal/60">{title}</legend>
+    <fieldset className="border border-bone/10 p-6">
+      <legend className="px-2 text-[10px] uppercase tracking-editorial text-bone/50">{title}</legend>
       <div className="grid gap-5 sm:grid-cols-2">{children}</div>
     </fieldset>
   );
@@ -427,7 +427,7 @@ function Field({
 }>) {
   return (
     <div className={className}>
-      {label && <Label className="mb-1 block text-charcoal/60">{label}</Label>}
+      {label && <Label className="mb-1 block text-bone/60">{label}</Label>}
       {children}
       {error && <p className="mt-1 text-[11px] text-red-400">{error}</p>}
     </div>
