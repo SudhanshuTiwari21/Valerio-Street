@@ -4,12 +4,12 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 
 const IMAGES = [
-  "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?auto=format&fit=crop&w=1200&q=85",
-  "https://images.unsplash.com/photo-1503342394128-c104d54dba01?auto=format&fit=crop&w=1200&q=85",
-  "https://images.unsplash.com/photo-1503602642458-232111445657?auto=format&fit=crop&w=1200&q=85",
-  "https://images.unsplash.com/photo-1521577352947-9bb58764b69a?auto=format&fit=crop&w=1200&q=85",
-  "https://images.unsplash.com/photo-1542327897-d73f4005b533?auto=format&fit=crop&w=1200&q=85",
-  "https://images.unsplash.com/photo-1564584217132-2271feaeb3c5?auto=format&fit=crop&w=1200&q=85",
+  "/brand/lookbook-01.png",
+  "/brand/lookbook-02.png",
+  "/brand/lookbook-03.png",
+  "/brand/lookbook-04.png",
+  "/brand/home-philosophy.png",
+  "/brand/home-craftsmanship.png",
 ];
 
 export function InstagramGrid() {

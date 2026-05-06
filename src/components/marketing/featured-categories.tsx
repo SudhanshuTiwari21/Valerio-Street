@@ -8,22 +8,22 @@ const items = [
   {
     title: "Polos",
     href: "/shop?category=polos",
-    image: "https://images.unsplash.com/photo-1564584217132-2271feaeb3c5?auto=format&fit=crop&w=1400&q=85",
+    image: "/brand/cat-polos.png",
   },
   {
     title: "Shirts",
     href: "/shop?category=shirts",
-    image: "https://images.unsplash.com/photo-1620012253295-c15cc3e65df4?auto=format&fit=crop&w=1400&q=85",
+    image: "/brand/cat-shirts.png",
   },
   {
     title: "Trousers",
     href: "/shop?category=trousers",
-    image: "https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?auto=format&fit=crop&w=1400&q=85",
+    image: "/brand/cat-trousers.png",
   },
   {
     title: "Footwear",
     href: "/shop?category=footwear",
-    image: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=1400&q=85",
+    image: "/brand/cat-footwear.png",
   },
 ];
 

@@ -17,7 +17,7 @@ export function Hero() {
     <section ref={ref} className="relative h-[100svh] min-h-[640px] w-full overflow-hidden bg-charcoal">
       <motion.div style={{ y }} className="absolute inset-0">
         <Image
-          src="https://images.unsplash.com/photo-1593030103066-0093718efeb9?auto=format&fit=crop&w=2400&q=85"
+          src="/brand/home-hero.png"
           alt="Valerio Street - quiet luxury menswear"
           fill
           priority

@@ -11,6 +11,9 @@ export function Brand({
   markClassName,
   textClassName,
   size = "md",
+  markEm = 3.1,
+  markNudgeEm = 0.12,
+  markInnerScale = 2.25,
   text = "Valerio Street",
   ariaLabel = "Valerio Street — home",
 }: Readonly<{
@@ -18,21 +21,22 @@ export function Brand({
   className?: string;
   markClassName?: string;
   textClassName?: string;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "xl";
+  /** Mark box size relative to current font-size (em). */
+  markEm?: number;
+  /** Optical vertical nudge for the mark (em). */
+  markNudgeEm?: number;
+  /** Compensate for transparent padding inside the PNG. */
+  markInnerScale?: number;
   text?: string;
   ariaLabel?: string;
 }>) {
-  const markBaseBySize = {
-    sm: "h-9 w-9",
-    md: "h-10 w-10",
-    lg: "h-12 w-12",
-  } as const;
   const textBaseBySize = {
     sm: "text-lg tracking-[0.26em]",
     md: "text-2xl tracking-[0.30em]",
     lg: "text-3xl tracking-[0.32em]",
+    xl: "text-4xl tracking-[0.32em]",
   } as const;
-  const markBase = markBaseBySize[size];
   const textBase = textBaseBySize[size];
   return (
     <Link
@@ -40,12 +44,32 @@ export function Brand({
       aria-label={ariaLabel}
       className={cn("inline-flex items-center gap-3", className)}
     >
-      <span className={cn("relative shrink-0", markBase, markClassName)} aria-hidden="true">
-        <Image src="/logo-trn.png" alt="" fill sizes="48px" className="object-contain" priority />
+      <span
+        className={cn(
+          "relative shrink-0",
+          markClassName,
+        )}
+        aria-hidden="true"
+        style={{
+          height: `${markEm}em`,
+          width: `${markEm}em`,
+          // Use translateY only via inline style so it can't be overridden by Tailwind classes.
+          translate: `0 ${markNudgeEm}em`,
+        }}
+      >
+        <Image
+          src="/logo-trn.png"
+          alt=""
+          fill
+          sizes="96px"
+          className="object-contain"
+          priority
+          style={{ transform: `scale(${markInnerScale})` }}
+        />
       </span>
       <span
         className={cn(
-          "font-serif uppercase leading-none translate-y-[1px]",
+          "font-serif uppercase leading-none",
           textBase,
           textClassName,
         )}

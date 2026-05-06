@@ -32,7 +32,7 @@ export function Craftsmanship() {
           </h2>
           <div className="relative mt-12 aspect-[4/5] overflow-hidden">
             <Image
-              src="https://images.unsplash.com/photo-1581934812760-eef9b1aef3a4?auto=format&fit=crop&w=1600&q=85"
+              src="/brand/home-craftsmanship.png"
               alt="Atelier hands"
               fill
               sizes="(min-width: 1024px) 40vw, 100vw"

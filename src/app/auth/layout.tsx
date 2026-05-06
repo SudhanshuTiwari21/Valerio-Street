@@ -6,7 +6,7 @@ export default function AuthLayout({ children }: Readonly<{ children: React.Reac
     <div className="grid min-h-[calc(100svh-3rem)] lg:grid-cols-2">
       <div className="relative hidden lg:block">
         <Image
-          src="https://images.unsplash.com/photo-1598522321395-b3e2fa4f0e6e?auto=format&fit=crop&w=2000&q=85"
+          src="/brand/contact-hero.png"
           alt="Atelier"
           fill
           className="object-cover"

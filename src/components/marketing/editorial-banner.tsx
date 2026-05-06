@@ -14,7 +14,7 @@ export function EditorialBanner() {
     <section ref={ref} className="relative h-[90svh] min-h-[540px] w-full overflow-hidden bg-charcoal">
       <motion.div style={{ y }} className="absolute inset-0">
         <Image
-          src="https://images.unsplash.com/photo-1542327897-d73f4005b533?auto=format&fit=crop&w=2400&q=85"
+          src="/brand/home-editorial-banner.png"
           alt="Editorial fashion"
           fill
           sizes="100vw"

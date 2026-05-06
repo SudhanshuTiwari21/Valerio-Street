@@ -29,7 +29,7 @@ export default function AboutPage() {
       <section className="relative">
         <div className="relative aspect-[16/9] w-full">
           <Image
-            src="https://images.unsplash.com/photo-1558961363-fa8fdf82db35?auto=format&fit=crop&w=2400&q=85"
+            src="/brand/home-editorial-banner.png"
             alt="Atelier"
             fill
             sizes="100vw"

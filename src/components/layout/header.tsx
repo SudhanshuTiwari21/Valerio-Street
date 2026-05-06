@@ -42,7 +42,9 @@ export function Header() {
             <SheetContent side="left" className="bg-bone p-8">
               <Brand
                 className="text-charcoal"
-                markClassName="h-7 w-7"
+                markEm={2.9}
+                markNudgeEm={0.04}
+                markInnerScale={2.2}
                 textClassName="text-xl tracking-[0.22em]"
               />
               <nav className="mt-12 flex flex-col gap-6">
@@ -78,9 +80,11 @@ export function Header() {
         <div className="absolute left-1/2 -translate-x-1/2">
           <Brand
             className="text-charcoal"
-            size="md"
-            markClassName="h-10 w-10 sm:h-11 sm:w-11"
-            textClassName="text-xl sm:text-2xl"
+            size="lg"
+            markEm={3.5}
+            markNudgeEm={0.32}
+            markInnerScale={2.35}
+            textClassName="text-2xl sm:text-3xl"
           />
         </div>
 

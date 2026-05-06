@@ -15,7 +15,7 @@ export function Lifestyle() {
         className="relative aspect-[4/5] overflow-hidden md:translate-y-12"
       >
         <Image
-          src="https://images.unsplash.com/photo-1521577352947-9bb58764b69a?auto=format&fit=crop&w=1800&q=85"
+          src="/brand/home-lifestyle-1.png"
           alt="The European weekend"
           fill
           sizes="(min-width: 768px) 50vw, 100vw"
@@ -42,7 +42,7 @@ export function Lifestyle() {
         </Link>
         <div className="relative mt-12 aspect-[4/3] overflow-hidden">
           <Image
-            src="https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=1800&q=85"
+            src="/brand/home-lifestyle-2.png"
             alt="Lake Como"
             fill
             sizes="(min-width: 768px) 50vw, 100vw"
