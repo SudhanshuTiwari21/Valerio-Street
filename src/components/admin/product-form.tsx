@@ -16,12 +16,20 @@ import { slugify } from "@/lib/utils";
 type Cat = { id: string; name: string; sizeScale: "ALPHA" | "SHOE_EU" };
 type VariantRow = {
   id?: string;
+  localId: string;
   size?: string | null;
   color?: string | null;
   sku: string;
   stock: number;
   priceDiff: number;
 };
+
+type VariantFromDb = Omit<VariantRow, "localId">;
+
+function newLocalId() {
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) return crypto.randomUUID();
+  return `v_${Math.random().toString(16).slice(2)}_${Date.now()}`;
+}
 
 function uniqueSku(base: string, existing: Set<string>) {
   let sku = base;
@@ -41,12 +49,18 @@ export function ProductForm({
 }: Readonly<{
   product?: any;
   categories: Cat[];
-  variants?: VariantRow[];
+  variants?: VariantFromDb[];
 }>) {
   const router = useRouter();
   const [pending, start] = useTransition();
   const [imageInput, setImageInput] = useState("");
-  const [variantRows, setVariantRows] = useState<VariantRow[]>(variants ?? []);
+  const [variantRows, setVariantRows] = useState<VariantRow[]>(
+    () =>
+      (variants ?? []).map((v, i) => ({
+        ...v,
+        localId: v.id ?? `seed_${i}_${Date.now()}`,
+      })),
+  );
   const [variantSaving, setVariantSaving] = useState(false);
 
   const form = useForm<ProductInput>({
@@ -167,7 +181,7 @@ export function ProductForm({
     const sku = uniqueSku(base, existing);
     setVariantRows((p) => [
       ...p,
-      { sku, size, color: null, stock: 0, priceDiff: 0 },
+      { localId: newLocalId(), sku, size, color: null, stock: 0, priceDiff: 0 },
     ]);
   }
 
@@ -197,7 +211,9 @@ export function ProductForm({
       const res = await fetch(`/api/admin/products/${product.id}/variants`, {
         method: "PUT",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ variants: variantRows }),
+        body: JSON.stringify({
+          variants: variantRows.map(({ localId: _localId, ...rest }) => rest),
+        }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.error ?? "Could not save variants");
@@ -326,7 +342,7 @@ export function ProductForm({
                 </thead>
                 <tbody>
                   {variantRows.map((v, idx) => (
-                    <tr key={v.id ?? v.sku ?? idx} className="border-t border-bone/10">
+                    <tr key={v.id ?? v.localId} className="border-t border-bone/10">
                       <td className="px-4 py-2">
                         <select
                           value={v.size ?? ""}
