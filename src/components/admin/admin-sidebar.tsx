@@ -47,17 +47,17 @@ export function AdminSidebar({
   }
 
   return (
-    <aside className="hidden border-r border-bone/10 bg-charcoal lg:flex lg:flex-col">
+    <aside className="hidden border-r border-charcoal/10 bg-bone lg:flex lg:flex-col">
       <div className="px-8 pb-8 pt-10">
         <Brand
           href="/admin"
           ariaLabel="Valerio Street — admin"
-          className="text-bone"
+          className="text-charcoal"
           size="sm"
           markClassName="h-10 w-10"
           textClassName="text-xl tracking-[0.22em]"
         />
-        <p className="mt-2 text-[10px] uppercase tracking-editorial text-bone/40">Admin Atelier</p>
+        <p className="mt-2 text-[10px] uppercase tracking-editorial text-charcoal/60">Admin Atelier</p>
       </div>
       <nav className="flex-1 space-y-1 px-4">
         {NAV.filter((n) => allowed(n.permission)).map((n) => {
@@ -69,7 +69,7 @@ export function AdminSidebar({
               href={n.href}
               className={cn(
                 "flex items-center gap-3 px-4 py-2.5 text-[11px] uppercase tracking-editorial transition-colors",
-                active ? "bg-bone/10 text-bone" : "text-bone/60 hover:bg-bone/5 hover:text-bone",
+                active ? "bg-charcoal/5 text-charcoal" : "text-charcoal/60 hover:bg-charcoal/5 hover:text-charcoal",
               )}
             >
               <Icon className="h-3.5 w-3.5" />
@@ -78,11 +78,11 @@ export function AdminSidebar({
           );
         })}
       </nav>
-      <div className="border-t border-bone/10 px-6 py-6">
-        <p className="font-serif text-base text-bone">{user.name ?? user.email}</p>
-        <p className="text-[10px] uppercase tracking-editorial text-bone/40">{user.role.replace("_", " ")}</p>
+      <div className="border-t border-charcoal/10 px-6 py-6">
+        <p className="font-serif text-base text-charcoal">{user.name ?? user.email}</p>
+        <p className="text-[10px] uppercase tracking-editorial text-charcoal/60">{user.role.replace("_", " ")}</p>
         <form action={signOut} className="mt-4">
-          <button className="flex items-center gap-2 text-[11px] uppercase tracking-editorial text-bone/60 hover:text-bone">
+          <button className="flex items-center gap-2 text-[11px] uppercase tracking-editorial text-charcoal/60 hover:text-charcoal">
             <LogOut className="h-3.5 w-3.5" /> Sign out
           </button>
         </form>
