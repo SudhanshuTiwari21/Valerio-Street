@@ -7,6 +7,7 @@ import { checkoutSchema } from "@/lib/validations";
 import { getRazorpay } from "@/lib/razorpay";
 import { generateOrderNumber } from "@/lib/utils";
 import { ipFromHeaders, rateLimit } from "@/lib/rate-limit";
+import { getShippingSettings, shippingFeeFromSettings } from "@/lib/shipping";
 
 const lineItem = z.object({
   productId: z.string(),
@@ -54,7 +55,8 @@ export async function POST(req: Request) {
     }
   }
 
-  const shippingFee = subtotal - discount >= 1500000 ? 0 : 49900;
+  const shipCfg = await getShippingSettings();
+  const shippingFee = shippingFeeFromSettings(subtotal - discount, shipCfg);
   const total = Math.max(0, subtotal - discount + shippingFee);
   const orderNumber = generateOrderNumber();
 

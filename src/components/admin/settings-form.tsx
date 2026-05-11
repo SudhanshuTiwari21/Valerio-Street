@@ -53,9 +53,15 @@ export function SettingsForm({ settings }: { settings: any }) {
       <Section title="Shipping & tax">
         <Field label="Flat shipping (paise)">
           <Input type="number" value={s.shippingFlatFee} onChange={(e) => set("shippingFlatFee", Number(e.target.value))} className="text-bone" />
+          <p className="mt-1 text-[10px] uppercase tracking-editorial text-bone/45">
+            Charged at checkout when the order is below the free-shipping threshold (e.g. ₹499 → 49900).
+          </p>
         </Field>
         <Field label="Free shipping above (paise)">
           <Input type="number" value={s.freeShippingMin} onChange={(e) => set("freeShippingMin", Number(e.target.value))} className="text-bone" />
+          <p className="mt-1 text-[10px] uppercase tracking-editorial text-bone/45">
+            Subtotal at or above this amount ships free (e.g. ₹15,000 → 1500000). Set to 0 to always charge flat shipping.
+          </p>
         </Field>
         <Field label="Tax rate (basis points)">
           <Input type="number" value={s.taxRate} onChange={(e) => set("taxRate", Number(e.target.value))} className="text-bone" />

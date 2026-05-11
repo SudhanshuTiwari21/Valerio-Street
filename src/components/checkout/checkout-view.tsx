@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useCart } from "@/lib/cart-store";
 import { formatINR } from "@/lib/utils";
 import { checkoutSchema, type CheckoutInput } from "@/lib/validations";
+import { DEFAULT_FREE_SHIPPING_MIN_PAISE, DEFAULT_SHIPPING_FLAT_PAISE, shippingFeeFromSettings } from "@/lib/shipping";
 
 declare global {
   interface Window {
@@ -22,7 +23,10 @@ declare global {
   }
 }
 
-export function CheckoutView() {
+export function CheckoutView({
+  shippingFlatFee = DEFAULT_SHIPPING_FLAT_PAISE,
+  freeShippingMin = DEFAULT_FREE_SHIPPING_MIN_PAISE,
+}: Readonly<{ shippingFlatFee?: number; freeShippingMin?: number }>) {
   const cart = useCart();
   const router = useRouter();
   const [hydrated, setHydrated] = useState(false);
@@ -85,7 +89,7 @@ export function CheckoutView() {
   }
 
   const subtotal = cart.subtotal();
-  const shipping = subtotal >= 1500000 ? 0 : 49900;
+  const shipping = shippingFeeFromSettings(subtotal, { shippingFlatFee, freeShippingMin });
   const total = subtotal + shipping;
 
   async function onSubmit(values: CheckoutInput) {
@@ -218,6 +222,11 @@ export function CheckoutView() {
               <Row label="Subtotal" value={formatINR(subtotal)} />
               <Row label="Shipping" value={shipping ? formatINR(shipping) : "Complimentary"} />
             </dl>
+            {freeShippingMin > 0 && (
+              <p className="mt-2 text-[10px] uppercase tracking-editorial text-charcoal/45">
+                Complimentary shipping on orders {formatINR(freeShippingMin)} and above
+              </p>
+            )}
             <div className="mt-6 border-t border-charcoal/10 pt-6">
               <div className="flex items-baseline justify-between">
                 <span className="text-[11px] uppercase tracking-editorial text-charcoal/60">Total</span>
