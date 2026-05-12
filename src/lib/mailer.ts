@@ -1,4 +1,5 @@
 import nodemailer from "nodemailer";
+import { Resend } from "resend";
 
 export type Mail = {
   to: string;
@@ -11,6 +12,32 @@ export type SendMailResult =
   | { ok: true }
   | { ok: false; skipped: true }
   | { ok: false; code?: string; message: string };
+
+/** Resend HTTP API (no SMTP). Prefer when `RESEND_API_KEY` is set — avoids Titan/host SMTP 535 issues. */
+async function sendViaResend(mail: Mail): Promise<SendMailResult | null> {
+  const apiKey = process.env.RESEND_API_KEY?.trim();
+  if (!apiKey) return null;
+
+  const from =
+    process.env.RESEND_FROM?.trim() ??
+    process.env.SMTP_FROM?.trim() ??
+    "Valerio Street <onboarding@resend.dev>";
+
+  const resend = new Resend(apiKey);
+  const result = await resend.emails.send({
+    from,
+    to: mail.to,
+    subject: mail.subject,
+    html: mail.html,
+    ...(mail.text ? { text: mail.text } : {}),
+  });
+
+  if (result.error) {
+    console.error("[mail:resend]", { message: result.error.message, name: result.error.name });
+    return { ok: false, message: result.error.message };
+  }
+  return { ok: true };
+}
 
 function createTransport(authMethod?: "PLAIN" | "LOGIN") {
   const host = process.env.SMTP_HOST?.trim();
@@ -45,8 +72,7 @@ function createTransport(authMethod?: "PLAIN" | "LOGIN") {
   });
 }
 
-export async function sendMail(mail: Mail): Promise<SendMailResult> {
-  const from = process.env.SMTP_FROM?.trim() ?? `Valerio Street <${process.env.SMTP_USER?.trim() ?? "noreply@example.com"}>`;
+async function sendViaSmtp(mail: Mail, from: string): Promise<SendMailResult> {
   const transport = createTransport();
   if (!transport) {
     if (process.env.NODE_ENV !== "production") {
@@ -94,5 +120,20 @@ export async function sendMail(mail: Mail): Promise<SendMailResult> {
     console.error("[mail:error]", { code, responseCode: err.responseCode, message: message.slice(0, 200) });
     return { ok: false, code, message };
   }
+}
+
+export async function sendMail(mail: Mail): Promise<SendMailResult> {
+  const smtpFrom = process.env.SMTP_FROM?.trim() ?? `Valerio Street <${process.env.SMTP_USER?.trim() ?? "noreply@example.com"}>`;
+
+  const resendAttempt = await sendViaResend(mail);
+  if (resendAttempt) {
+    if (resendAttempt.ok) return resendAttempt;
+    // Fall back to SMTP if Resend failed but SMTP is configured (e.g. wrong Resend domain).
+    const fallback = await sendViaSmtp(mail, smtpFrom);
+    if (fallback.ok || !("skipped" in fallback && fallback.skipped)) return fallback;
+    return resendAttempt;
+  }
+
+  return sendViaSmtp(mail, smtpFrom);
 }
 
