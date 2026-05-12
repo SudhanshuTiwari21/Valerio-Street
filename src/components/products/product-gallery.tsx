@@ -28,7 +28,7 @@ export function ProductGallery({ images, alt }: { images: string[]; alt: string 
       <Dialog>
         <DialogTrigger asChild>
           <div className="order-1 sm:order-2">
-            <div className="relative aspect-[3/4] w-full cursor-zoom-in overflow-hidden bg-sand/40">
+            <div className="relative mx-auto aspect-[3/4] w-full max-w-md cursor-zoom-in overflow-hidden bg-sand/40 lg:max-w-lg">
               <AnimatePresence mode="wait">
                 <motion.div
                   key={safe[active]}
@@ -43,7 +43,7 @@ export function ProductGallery({ images, alt }: { images: string[]; alt: string 
                     alt={alt}
                     fill
                     priority
-                    sizes="(min-width: 1024px) 50vw, 100vw"
+                    sizes="(min-width: 1280px) 38vw, (min-width: 1024px) 42vw, 100vw"
                     className="object-cover"
                   />
                 </motion.div>

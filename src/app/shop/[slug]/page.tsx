@@ -66,10 +66,10 @@ export default async function ProductPage({ params }: { params: Promise<{ slug: 
         dangerouslySetInnerHTML={{ __html: JSON.stringify(ld) }}
       />
       <div className="container grid gap-12 pt-12 lg:grid-cols-12 lg:gap-16 lg:pt-20">
-        <div className="lg:col-span-7">
+        <div className="lg:col-span-5">
           <ProductGallery images={product.images} alt={product.name} />
         </div>
-        <div className="lg:col-span-5 lg:sticky lg:top-32 lg:self-start">
+        <div className="lg:col-span-7 lg:sticky lg:top-32 lg:self-start">
           <ProductPanel
             product={{
               id: product.id,
