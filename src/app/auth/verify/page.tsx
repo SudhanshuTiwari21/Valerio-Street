@@ -18,12 +18,17 @@ export default function VerifyPage() {
 
   async function verify(e: React.SyntheticEvent) {
     e.preventDefault();
+    const digits = code.replaceAll(/\D/g, "").slice(0, 6);
+    if (digits.length !== 6) {
+      toast.error("Enter the 6-digit code from your email.");
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch("/api/auth/otp/verify", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ email, type: "SIGNUP", code }),
+        body: JSON.stringify({ email, type: "SIGNUP", code: digits }),
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(typeof data.error === "string" ? data.error : "Could not verify");
@@ -63,16 +68,18 @@ export default function VerifyPage() {
         We sent a 6-digit code to <span className="font-medium text-charcoal">{email || "your email"}</span>.
       </p>
 
-      <form onSubmit={verify} className="mt-10 space-y-5">
+      <form noValidate onSubmit={verify} className="mt-10 space-y-5">
         <div>
           <Label className="mb-1 block">6-digit code</Label>
           <Input
+            type="text"
             inputMode="numeric"
-            pattern="\\d{6}"
-            maxLength={6}
+            autoComplete="one-time-code"
+            title="6 digits from your email"
+            maxLength={12}
             required
             value={code}
-            onChange={(e) => setCode(e.target.value.replaceAll(String.raw`\D`, "").slice(0, 6))}
+            onChange={(e) => setCode(e.target.value.replaceAll(/\D/g, "").slice(0, 6))}
           />
         </div>
         <Button size="lg" className="w-full" disabled={loading || !email || code.length !== 6}>
