@@ -6,6 +6,8 @@ export type Mail = {
   subject: string;
   html: string;
   text?: string;
+  /** Sets Reply-To (e.g. visitor email on contact form). */
+  replyTo?: string;
 };
 
 export type SendMailResult =
@@ -30,6 +32,7 @@ async function sendViaResend(mail: Mail): Promise<SendMailResult | null> {
     subject: mail.subject,
     html: mail.html,
     ...(mail.text ? { text: mail.text } : {}),
+    ...(mail.replyTo ? { replyTo: mail.replyTo } : {}),
   });
 
   if (result.error) {
@@ -87,6 +90,7 @@ async function sendViaSmtp(mail: Mail, from: string): Promise<SendMailResult> {
     subject: mail.subject,
     html: mail.html,
     text: mail.text,
+    ...(mail.replyTo ? { replyTo: mail.replyTo } : {}),
   };
 
   try {
