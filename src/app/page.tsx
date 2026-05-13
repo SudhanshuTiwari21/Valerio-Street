@@ -22,10 +22,11 @@ export const metadata: Metadata = {
     "European-inspired menswear essentials, crafted for quiet luxury and refined living.",
 };
 
-async function getFeatured(): Promise<ProductCardData[]> {
+async function getNewInAtelier(): Promise<ProductCardData[]> {
   try {
     const list = await prisma.product.findMany({
-      where: { status: "ACTIVE", isFeatured: true },
+      // Homepage “New In Atelier”: show newest ACTIVE pieces (not just manually featured).
+      where: { status: "ACTIVE" },
       include: { category: { select: { name: true } } },
       take: 8,
       orderBy: { createdAt: "desc" },
@@ -45,7 +46,7 @@ async function getFeatured(): Promise<ProductCardData[]> {
 }
 
 export default async function HomePage() {
-  const featured = await getFeatured();
+  const featured = await getNewInAtelier();
 
   return (
     <>
