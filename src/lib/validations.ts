@@ -63,6 +63,20 @@ export const productSchema = z.object({
   metaDescription: z.string().optional(),
 });
 
+/** Admin variant row (create or update). `id` only when updating an existing variant. */
+export const productVariantInputSchema = z.object({
+  id: z.string().optional(),
+  size: z.string().nullable().optional(),
+  color: z.string().nullable().optional(),
+  sku: z.string().min(2),
+  stock: z.coerce.number().int().min(0),
+  priceDiff: z.coerce.number().int(),
+});
+
+export const productCreateSchema = productSchema.extend({
+  variants: z.array(productVariantInputSchema).optional().default([]),
+});
+
 export const contactSchema = z.object({
   name: z.string().min(2),
   email: z.string().email(),
@@ -77,3 +91,4 @@ export const newsletterSchema = z.object({
 export type CheckoutInput = z.infer<typeof checkoutSchema>;
 export type AddressInput = z.infer<typeof addressSchema>;
 export type ProductInput = z.infer<typeof productSchema>;
+export type ProductCreateInput = z.infer<typeof productCreateSchema>;

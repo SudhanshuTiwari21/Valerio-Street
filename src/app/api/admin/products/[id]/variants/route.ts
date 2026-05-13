@@ -2,18 +2,10 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { prisma } from "@/lib/prisma";
+import { productVariantInputSchema } from "@/lib/validations";
 import { requirePermission } from "@/lib/rbac";
 
-const variantSchema = z.object({
-  id: z.string().optional(),
-  size: z.string().nullable().optional(),
-  color: z.string().nullable().optional(),
-  sku: z.string().min(2),
-  stock: z.number().int().min(0),
-  priceDiff: z.number().int(),
-});
-
-const schema = z.object({ variants: z.array(variantSchema) });
+const schema = z.object({ variants: z.array(productVariantInputSchema) });
 
 export async function PUT(req: Request, ctx: { params: Promise<{ id: string }> }) {
   try {

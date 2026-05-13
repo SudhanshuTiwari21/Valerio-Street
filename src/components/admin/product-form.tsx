@@ -128,7 +128,14 @@ export function ProductForm({
       const res = await fetch(url, {
         method,
         headers: { "content-type": "application/json" },
-        body: JSON.stringify(values),
+        body: JSON.stringify(
+          product
+            ? values
+            : {
+                ...values,
+                variants: variantRows.map(({ localId: _localId, ...row }) => row),
+              },
+        ),
       });
       if (!res.ok) {
         toast.error("Could not save");
@@ -179,11 +186,19 @@ export function ProductForm({
     }
   }
 
+  function effectiveSlugForSkus() {
+    if (product?.slug) return product.slug;
+    const slugField = form.getValues("slug")?.trim();
+    if (slugField) return slugField;
+    const name = form.getValues("name")?.trim();
+    return name ? slugify(name) : "piece";
+  }
+
   function addVariantRow() {
-    if (!product?.slug) return;
+    const slugBase = effectiveSlugForSkus().toLowerCase();
     const existing = new Set(variantRows.map((v) => v.sku.trim()).filter(Boolean));
     const size = sizeOptions[0] ?? null;
-    const base = `${product.slug}-${size ?? "VAR"}`.toLowerCase();
+    const base = `${slugBase}-${size ?? "var"}`;
     const sku = uniqueSku(base, existing);
     setVariantRows((p) => [
       ...p,
@@ -326,15 +341,15 @@ export function ProductForm({
         </div>
       </Section>
 
-      <Section title="SEO">
-        <Field label="Meta title"><Input {...form.register("metaTitle")} className="text-bone" /></Field>
-        <Field label="Meta description"><Input {...form.register("metaDescription")} className="text-bone" /></Field>
-      </Section>
-
-      {product?.id && (
-        <Section title="Variants & stock">
-          <div className="sm:col-span-2">
-            <div className="overflow-x-auto border border-bone/10">
+      <Section title="Variants & stock">
+        <div className="sm:col-span-2">
+          {!product?.id && (
+            <p className="mb-4 text-xs text-bone/55">
+              Add sizes and stock here; they are saved together when you create the piece. After creation you can use
+              &quot;Save variants&quot; to update inventory without editing the whole product.
+            </p>
+          )}
+          <div className="overflow-x-auto border border-bone/10">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="text-left text-[10px] uppercase tracking-editorial text-bone/50">
@@ -425,18 +440,24 @@ export function ProductForm({
               >
                 Add variant
               </Button>
-              <Button
-                type="button"
-                className="bg-bone text-charcoal hover:bg-sand"
-                onClick={saveVariants}
-                disabled={variantSaving}
-              >
-                {variantSaving ? "Saving variants…" : "Save variants"}
-              </Button>
+              {product?.id ? (
+                <Button
+                  type="button"
+                  className="bg-bone text-charcoal hover:bg-sand"
+                  onClick={saveVariants}
+                  disabled={variantSaving}
+                >
+                  {variantSaving ? "Saving variants…" : "Save variants"}
+                </Button>
+              ) : null}
             </div>
           </div>
         </Section>
-      )}
+
+      <Section title="SEO">
+        <Field label="Meta title"><Input {...form.register("metaTitle")} className="text-bone" /></Field>
+        <Field label="Meta description"><Input {...form.register("metaDescription")} className="text-bone" /></Field>
+      </Section>
 
       <div className="flex items-center justify-between gap-4">
         <Button type="submit" disabled={pending} className="bg-bone text-charcoal hover:bg-sand">
