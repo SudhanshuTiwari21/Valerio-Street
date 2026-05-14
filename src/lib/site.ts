@@ -6,8 +6,6 @@ export const site = {
   url: process.env.NEXT_PUBLIC_APP_URL ?? "https://valeriostreet.com",
   social: {
     instagram: "https://instagram.com/valeriostreet",
-    linkedin: "https://linkedin.com/company/valeriostreet",
-    pinterest: "https://pinterest.com/valeriostreet",
   },
   contact: {
     email: "support@valeriostreet.in",

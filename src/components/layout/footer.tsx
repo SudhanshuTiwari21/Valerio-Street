@@ -48,8 +48,6 @@ export function Footer() {
           <p>© {new Date().getFullYear()} {site.name}. All rights reserved.</p>
           <div className="flex items-center gap-6">
             <a href={site.social.instagram} className="luxe-link">Instagram</a>
-            <a href={site.social.pinterest} className="luxe-link">Pinterest</a>
-            <a href={site.social.linkedin} className="luxe-link">LinkedIn</a>
           </div>
           <p>{site.contact.address}</p>
         </div>

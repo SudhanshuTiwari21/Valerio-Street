@@ -62,7 +62,7 @@ export default async function ShopPage({ searchParams }: { searchParams: Promise
 
   return (
     <div className="bg-bone">
-      <ShopHeader title="The Collection" eyebrow="Atelier · Spring MMXXVI" />
+      <ShopHeader title="The Collection" eyebrow="Atelier · Spring" />
 
       <div className="container grid gap-12 pb-24 lg:grid-cols-12 lg:gap-16">
         <aside className="lg:col-span-3">
