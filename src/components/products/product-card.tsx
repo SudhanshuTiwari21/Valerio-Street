@@ -19,7 +19,12 @@ export function ProductCard({ product, priority = false }: { product: ProductCar
   const [a, b] = product.images;
   return (
     <motion.div whileHover="hover" initial="initial" className="group">
-      <Link href={`/shop/${product.slug}`} className="block">
+      <Link
+        href={`/shop/${product.slug}`}
+        className="block"
+        scroll
+        onPointerDownCapture={(e) => e.stopPropagation()}
+      >
         <div className="relative aspect-[3/4] overflow-hidden bg-sand/30">
           {a && (
             <motion.div

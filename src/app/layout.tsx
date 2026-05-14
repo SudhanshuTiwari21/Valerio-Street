@@ -3,6 +3,7 @@ import { Toaster } from "sonner";
 
 import { site } from "@/lib/site";
 import { Providers } from "@/components/providers";
+import { ScrollToTopOnRoute } from "@/components/scroll-to-top-on-route";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
 import { CartDrawer } from "@/components/cart/cart-drawer";
@@ -65,6 +66,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" suppressHydrationWarning>
       <body className="min-h-screen antialiased">
         <Providers>
+          <ScrollToTopOnRoute />
           <a
             href="#main"
             className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-sm focus:bg-charcoal focus:px-3 focus:py-2 focus:text-bone"

@@ -59,7 +59,7 @@ export function ShopGrid({ products }: { products: ProductCardData[] }) {
             hidden: {},
             show: { transition: { staggerChildren: 0.05 } },
           }}
-          className="mt-10 grid grid-cols-1 gap-x-6 gap-y-14 sm:grid-cols-2 lg:grid-cols-3"
+          className="mt-10 grid grid-cols-2 gap-x-4 gap-y-10 sm:gap-x-6 sm:gap-y-14"
         >
           {products.map((p, i) => (
             <motion.div
@@ -69,7 +69,7 @@ export function ShopGrid({ products }: { products: ProductCardData[] }) {
                 show: { opacity: 1, y: 0, transition: { duration: 0.7, ease: [0.22, 1, 0.36, 1] } },
               }}
             >
-              <ProductCard product={p} priority={i < 3} />
+              <ProductCard product={p} priority={i < 4} />
             </motion.div>
           ))}
         </motion.div>
