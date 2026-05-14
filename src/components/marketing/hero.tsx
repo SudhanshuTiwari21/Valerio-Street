@@ -37,7 +37,7 @@ export function Hero() {
           transition={{ duration: 1, delay: 0.2 }}
           className="editorial-eyebrow text-bone/80"
         >
-          The Spring Collection · MMXXVI
+          The Spring Collection
         </motion.p>
 
         <motion.h1
