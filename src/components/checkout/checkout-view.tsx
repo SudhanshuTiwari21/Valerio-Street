@@ -71,9 +71,12 @@ export function CheckoutView({
     defaultValues: {
       email: "",
       phone: "",
+      paymentMethod: "ONLINE",
       address: { fullName: "", phone: "", line1: "", city: "", state: "", postalCode: "", country: "India" },
     },
   });
+
+  const paymentMethod = form.watch("paymentMethod");
 
   if (!hydrated) return null;
 
@@ -92,6 +95,11 @@ export function CheckoutView({
   const shipping = shippingFeeFromSettings(subtotal, { shippingFlatFee, freeShippingMin });
   const total = subtotal + shipping;
 
+  let submitBusyLabel = "Opening secure payment…";
+  if (paymentMethod === "COD") submitBusyLabel = "Placing order…";
+  let submitIdleLabel = `Pay ${formatINR(total)}`;
+  if (paymentMethod === "COD") submitIdleLabel = `Place order · ${formatINR(total)} COD`;
+
   async function onSubmit(values: CheckoutInput) {
     setSubmitting(true);
     try {
@@ -106,6 +114,20 @@ export function CheckoutView({
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Could not place order");
+
+      if (data.paymentMethod === "COD") {
+        cart.clear();
+        toast.success("Order placed. Pay when your order arrives.");
+        router.push(`/checkout/success?order=${data.orderNumber}`);
+        setSubmitting(false);
+        return;
+      }
+
+      if (!data.razorpayOrderId || !process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID) {
+        toast.error("Online payment is not configured. Choose cash on delivery or try again later.");
+        setSubmitting(false);
+        return;
+      }
 
       const opts = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
@@ -197,6 +219,32 @@ export function CheckoutView({
             </div>
           </Section>
 
+          <Section title="Payment">
+            <div className="grid gap-4">
+              <label className="flex cursor-pointer items-start gap-3 border border-charcoal/10 p-4 transition-colors hover:border-charcoal/25 has-[:checked]:border-charcoal/40">
+                <input
+                  type="radio"
+                  value="ONLINE"
+                  className="mt-1"
+                  {...form.register("paymentMethod")}
+                />
+                <span>
+                  <span className="block font-medium text-charcoal">Card / UPI / netbanking</span>
+                  <span className="mt-1 block text-sm text-charcoal/60">Secure checkout with Razorpay</span>
+                </span>
+              </label>
+              <label className="flex cursor-pointer items-start gap-3 border border-charcoal/10 p-4 transition-colors hover:border-charcoal/25 has-[:checked]:border-charcoal/40">
+                <input type="radio" value="COD" className="mt-1" {...form.register("paymentMethod")} />
+                <span>
+                  <span className="block font-medium text-charcoal">Cash on delivery</span>
+                  <span className="mt-1 block text-sm text-charcoal/60">
+                    Pay {formatINR(total)} in cash when the courier delivers (India only).
+                  </span>
+                </span>
+              </label>
+            </div>
+          </Section>
+
           <Section title="Order notes (optional)">
             <Textarea placeholder="Special instructions for the atelier" {...form.register("notes")} />
           </Section>
@@ -237,7 +285,7 @@ export function CheckoutView({
               </p>
             </div>
             <Button type="submit" size="lg" disabled={submitting} className="mt-8 w-full">
-              {submitting ? "Opening secure payment…" : `Pay ${formatINR(total)}`}
+              {submitting ? submitBusyLabel : submitIdleLabel}
             </Button>
             {reservedUntil && (
               <p className="mt-3 text-center text-[10px] uppercase tracking-editorial text-charcoal/40">
@@ -245,7 +293,7 @@ export function CheckoutView({
               </p>
             )}
             <p className="mt-4 text-center text-[10px] uppercase tracking-editorial text-charcoal/50">
-              Encrypted payments by Razorpay
+              {paymentMethod === "COD" ? "You will receive a confirmation email with order details." : "Encrypted payments by Razorpay"}
             </p>
           </div>
         </aside>

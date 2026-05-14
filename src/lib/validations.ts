@@ -44,6 +44,7 @@ export const checkoutSchema = z.object({
   address: addressSchema,
   couponCode: z.string().optional(),
   notes: z.string().optional(),
+  paymentMethod: z.enum(["ONLINE", "COD"]).default("ONLINE"),
 });
 
 export const productSchema = z.object({

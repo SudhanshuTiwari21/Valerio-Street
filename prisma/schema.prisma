@@ -275,6 +275,11 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum PaymentMethod {
+  ONLINE
+  COD
+}
+
 model Order {
   id                String        @id @default(cuid())
   orderNumber       String        @unique
@@ -300,6 +305,7 @@ model Order {
 
   status            OrderStatus   @default(PENDING)
   paymentStatus     PaymentStatus @default(PENDING)
+  paymentMethod     PaymentMethod @default(ONLINE)
 
   razorpayOrderId   String?
   razorpayPaymentId String?

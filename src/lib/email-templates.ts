@@ -6,6 +6,8 @@ export function orderConfirmedEmail(input: {
   total: number;
   email: string;
   items: { name: string; quantity: number; unitPrice: number }[];
+  /** Shown when customer chose cash on delivery */
+  cod?: boolean;
 }) {
   const lines = input.items
     .map(
@@ -18,14 +20,23 @@ export function orderConfirmedEmail(input: {
     )
     .join("");
 
-  const subject = `Order confirmed · ${input.orderNumber}`;
+  const subject = input.cod ? `Order placed (COD) · ${input.orderNumber}` : `Order confirmed · ${input.orderNumber}`;
   const html = baseEmail({
     title: "Thank you.",
-    subtitle: `Your order has been confirmed. A quiet note from the atelier.`,
+    subtitle: input.cod
+      ? `Your order is confirmed. Pay when your piece arrives.`
+      : `Your order has been confirmed. A quiet note from the atelier.`,
     body: `
       <p style="margin:0 0 14px 0;color:rgba(26,26,26,0.75);line-height:1.7">
         Order <strong>${escapeHtml(input.orderNumber)}</strong>
       </p>
+      ${
+        input.cod
+          ? `<p style="margin:0 0 14px 0;color:rgba(26,26,26,0.75);line-height:1.7">Payment: <strong>cash on delivery</strong> — ${formatINR(
+              input.total,
+            )} due when the courier delivers.</p>`
+          : ""
+      }
       <table width="100%" cellpadding="0" cellspacing="0" style="border-collapse:collapse;margin-top:12px">
         ${lines}
         <tr>

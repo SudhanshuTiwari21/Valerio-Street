@@ -61,6 +61,7 @@ export default async function AdminOrderDetail({
               <span className="font-serif text-2xl">{formatINR(order.total)}</span>
             </div>
             <p className="mt-2 text-[11px] uppercase tracking-editorial text-bone/50">
+              {order.paymentMethod === "COD" ? "COD · " : ""}
               {order.paymentStatus} · {order.status}
             </p>
           </div>

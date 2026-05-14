@@ -60,6 +60,7 @@ export default async function OrderDetail({ params }: { params: Promise<{ orderN
               <span className="font-serif text-2xl">{formatINR(order.total)}</span>
             </div>
             <p className="mt-3 text-[11px] uppercase tracking-editorial text-charcoal/50">
+              {order.paymentMethod === "COD" ? "Cash on delivery · " : ""}
               {order.paymentStatus} · {order.status}
             </p>
           </div>

@@ -8,6 +8,8 @@ import { getRazorpay } from "@/lib/razorpay";
 import { generateOrderNumber } from "@/lib/utils";
 import { ipFromHeaders, rateLimit } from "@/lib/rate-limit";
 import { getShippingSettings, shippingFeeFromSettings } from "@/lib/shipping";
+import { sendMail } from "@/lib/mailer";
+import { orderConfirmedEmail } from "@/lib/email-templates";
 
 const lineItem = z.object({
   productId: z.string(),
@@ -34,7 +36,7 @@ export async function POST(req: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Invalid order", details: parsed.error.flatten() }, { status: 400 });
   }
-  const { items, address, email, phone, couponCode, notes, cartId } = parsed.data;
+  const { items, address, email, phone, couponCode, notes, cartId, paymentMethod } = parsed.data;
   const session = await auth();
 
   // Re-price server-side from DB to prevent tampering.
@@ -65,7 +67,7 @@ export async function POST(req: Request) {
   });
 
   let razorpayOrderId: string | null = null;
-  if (process.env.RAZORPAY_KEY_ID) {
+  if (paymentMethod === "ONLINE" && process.env.RAZORPAY_KEY_ID) {
     const rz = getRazorpay();
     const rzOrder = await rz.orders.create({
       amount: total,
@@ -91,6 +93,9 @@ export async function POST(req: Request) {
       shippingAddressId: addr.id,
       razorpayOrderId: razorpayOrderId ?? undefined,
       notes,
+      paymentMethod: paymentMethod === "COD" ? "COD" : "ONLINE",
+      status: paymentMethod === "COD" ? "CONFIRMED" : "PENDING",
+      paymentStatus: "PENDING",
       items: {
         create: items.map((i) => ({
           productId: i.productId,
@@ -104,6 +109,7 @@ export async function POST(req: Request) {
         })),
       },
     },
+    include: { items: true },
   });
 
   // Consume reservations for this cart (stock already deducted at reserve time).
@@ -118,11 +124,28 @@ export async function POST(req: Request) {
     });
   }
 
+  if (paymentMethod === "COD") {
+    try {
+      const tpl = orderConfirmedEmail({
+        brand: "Valerio Street",
+        orderNumber: order.orderNumber,
+        total: order.total,
+        email: order.email,
+        items: order.items.map((i) => ({ name: i.name, quantity: i.quantity, unitPrice: i.unitPrice })),
+        cod: true,
+      });
+      await sendMail({ to: order.email, subject: tpl.subject, html: tpl.html });
+    } catch (e) {
+      console.error("[mail] COD order confirmation failed", e);
+    }
+  }
+
   return NextResponse.json({
     orderId: order.id,
     orderNumber: order.orderNumber,
     razorpayOrderId,
     amount: total,
     currency: "INR",
+    paymentMethod,
   });
 }

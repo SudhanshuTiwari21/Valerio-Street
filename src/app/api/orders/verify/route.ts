@@ -25,6 +25,15 @@ export async function POST(req: Request) {
   });
   if (!ok) return NextResponse.json({ error: "Bad signature" }, { status: 400 });
 
+  const existing = await prisma.order.findUnique({
+    where: { orderNumber: parsed.data.orderNumber },
+    select: { paymentMethod: true },
+  });
+  if (!existing) return NextResponse.json({ error: "Order not found" }, { status: 404 });
+  if (existing.paymentMethod === "COD") {
+    return NextResponse.json({ error: "This order uses cash on delivery; no online payment to verify." }, { status: 400 });
+  }
+
   const updated = await prisma.$transaction(async (tx) => {
     const order = await tx.order.findUnique({
       where: { orderNumber: parsed.data.orderNumber },
