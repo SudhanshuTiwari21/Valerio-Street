@@ -15,7 +15,7 @@ export type SendMailResult =
   | { ok: false; skipped: true }
   | { ok: false; code?: string; message: string };
 
-/** Resend HTTP API (no SMTP). Prefer when `RESEND_API_KEY` is set — avoids Titan/host SMTP 535 issues. */
+/** Resend HTTP API (no SMTP). Prefer when `RESEND_API_KEY` is set - avoids Titan/host SMTP 535 issues. */
 async function sendViaResend(mail: Mail): Promise<SendMailResult | null> {
   const apiKey = process.env.RESEND_API_KEY?.trim();
   if (!apiKey) return null;

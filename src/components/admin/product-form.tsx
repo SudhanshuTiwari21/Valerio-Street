@@ -370,7 +370,7 @@ export function ProductForm({
                           onChange={(e) => updateVariant(idx, { size: e.target.value || null })}
                           className="h-10 w-24 border-b border-bone/30 bg-transparent text-[11px] uppercase tracking-editorial text-bone focus:outline-none"
                         >
-                          <option value="" className="bg-charcoal">—</option>
+                          <option value="" className="bg-charcoal">-</option>
                           {sizeOptions.map((s) => (
                             <option key={s} value={s} className="bg-charcoal">{s}</option>
                           ))}

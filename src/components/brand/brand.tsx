@@ -15,7 +15,7 @@ export function Brand({
   markNudgeEm = 0.12,
   markInnerScale = 2.25,
   text = "Valerio Street",
-  ariaLabel = "Valerio Street — home",
+  ariaLabel = "Valerio Street - home",
 }: Readonly<{
   href?: string;
   className?: string;

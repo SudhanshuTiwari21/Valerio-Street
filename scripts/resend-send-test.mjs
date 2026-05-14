@@ -26,7 +26,7 @@ const resend = new Resend(apiKey);
 const { data, error } = await resend.emails.send({
   from,
   to,
-  subject: "Valerio Street — Resend test",
+  subject: "Valerio Street - Resend test",
   html: "<p>This is a <strong>Resend</strong> test from the Valerio Street repo.</p>",
 });
 

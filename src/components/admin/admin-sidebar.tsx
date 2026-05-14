@@ -51,7 +51,7 @@ export function AdminSidebar({
       <div className="px-8 pb-8 pt-10">
         <Brand
           href="/admin"
-          ariaLabel="Valerio Street — admin"
+          ariaLabel="Valerio Street - admin"
           className="text-bone"
           size="sm"
           markClassName="h-10 w-10"

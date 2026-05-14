@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Analytics } from "@vercel/analytics/next";
 import { Toaster } from "sonner";
 
 import { site } from "@/lib/site";
@@ -78,6 +79,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <Footer />
           <CartDrawer />
           <Toaster position="bottom-right" toastOptions={{ className: "font-sans text-sm" }} />
+          <Analytics />
         </Providers>
       </body>
     </html>

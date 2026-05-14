@@ -32,7 +32,7 @@ export function orderConfirmedEmail(input: {
       </p>
       ${
         input.cod
-          ? `<p style="margin:0 0 14px 0;color:rgba(26,26,26,0.75);line-height:1.7">Payment: <strong>cash on delivery</strong> — ${formatINR(
+          ? `<p style="margin:0 0 14px 0;color:rgba(26,26,26,0.75);line-height:1.7">Payment: <strong>cash on delivery</strong> - ${formatINR(
               input.total,
             )} due when the courier delivers.</p>`
           : ""

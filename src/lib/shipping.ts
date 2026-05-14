@@ -1,8 +1,8 @@
 import { prisma } from "@/lib/prisma";
 
-/** Default flat shipping (paise) — ₹499 */
+/** Default flat shipping (paise) - ₹499 */
 export const DEFAULT_SHIPPING_FLAT_PAISE = 49900;
-/** Default free-shipping threshold (paise) — ₹15,000 */
+/** Default free-shipping threshold (paise) - ₹15,000 */
 export const DEFAULT_FREE_SHIPPING_MIN_PAISE = 1_500_000;
 
 export type ShippingSettings = {

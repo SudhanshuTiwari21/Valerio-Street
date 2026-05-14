@@ -37,7 +37,7 @@ try {
   const info = await transport.sendMail({
     from,
     to,
-    subject: "Valerio Street — SMTP test",
+    subject: "Valerio Street - SMTP test",
     text: "This is a dummy test message sent from the Valerio Street repo SMTP check script.",
     html: "<p>This is a <strong>dummy test</strong> message from the Valerio Street SMTP check script.</p>",
   });
@@ -58,7 +58,7 @@ try {
       const info = await t2.sendMail({
         from,
         to,
-        subject: "Valerio Street — SMTP test (LOGIN retry)",
+        subject: "Valerio Street - SMTP test (LOGIN retry)",
         text: "LOGIN auth retry test.",
       });
       console.log("Sent OK (LOGIN retry):", { messageId: info.messageId, to });

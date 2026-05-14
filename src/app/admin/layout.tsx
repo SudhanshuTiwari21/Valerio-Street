@@ -33,7 +33,7 @@ export default async function AdminLayout({ children }: Readonly<{ children: Rea
             <p className="text-[10px] uppercase tracking-editorial text-bone/50">Admin · Atelier</p>
             <Brand
               href="/admin"
-              ariaLabel="Valerio Street — admin home"
+              ariaLabel="Valerio Street - admin home"
               className="text-bone"
               markClassName="h-7 w-7"
               textClassName="text-2xl tracking-[0.18em] normal-case"
